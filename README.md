@@ -88,6 +88,12 @@ statement file ──▶ extract ──▶ tie out ──▶ match ──▶ cla
   and computes commissions with its own arithmetic, so the pipeline is checked against data it did not
   produce. Its answer key lists the expected finding for every line.
 
+## How it was built
+
+This project was researched, designed and built with an AI coding agent. [`docs/process/`](docs/process/README.md)
+records the process: the portfolio research, three independent agent reviews and how their disagreements
+were settled, the human decisions, and a log of each milestone with how it was verified.
+
 ## Repository tour
 
 | Path                      | What is there                                                                                                  |
