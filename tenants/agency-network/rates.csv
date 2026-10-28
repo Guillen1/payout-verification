@@ -1,0 +1,14 @@
+carrier_id,product,term,rate_bps,effective_from,effective_to
+northwind,auto,new,1100,2025-01-01,2026-08-31
+northwind,auto,new,1200,2026-09-01,
+northwind,auto,renewal,1000,2025-01-01,
+northwind,home,new,1500,2025-01-01,
+northwind,home,renewal,1300,2025-01-01,
+northwind,umbrella,new,1500,2025-01-01,
+northwind,umbrella,renewal,1500,2025-01-01,
+bluestem,auto,new,1250,2025-01-01,
+bluestem,auto,renewal,1050,2025-01-01,
+bluestem,home,new,1600,2025-01-01,
+bluestem,home,renewal,1400,2025-01-01,
+bluestem,umbrella,new,1500,2025-01-01,
+bluestem,umbrella,renewal,1500,2025-01-01,

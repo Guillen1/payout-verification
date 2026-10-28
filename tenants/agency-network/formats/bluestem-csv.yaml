@@ -1,0 +1,36 @@
+# Bluestem Insurance: uppercase codes, US dates, "$1,234.56" amounts with parentheses for
+# chargebacks, insured as "LAST, FIRST", and a two-digit term suffix on every policy number.
+id: bluestem-csv
+version: 1
+carrierId: bluestem
+kind: csv
+headers:
+  - POLICY_NO
+  - NAMED_INSURED
+  - PRODUCT_CD
+  - TXN_CD
+  - EFF_DT
+  - PREMIUM
+  - COMM_AMT
+columns:
+  policyNumber: POLICY_NO
+  insuredName: NAMED_INSURED
+  product: PRODUCT_CD
+  transactionType: TXN_CD
+  effectiveDate: EFF_DT
+  premium: PREMIUM
+  commission: COMM_AMT
+dateFormat: MM/DD/YYYY
+policyNumberStripPattern: "-\\d{2}$"
+products:
+  PA: auto
+  HO: home
+  PU: umbrella
+transactionTypes:
+  NB: new
+  RN: renewal
+  XC: cancellation
+totalRow:
+  labelColumn: POLICY_NO
+  label: TOTAL
+  amountColumn: COMM_AMT

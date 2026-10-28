@@ -1,0 +1,13 @@
+# A network of independent P&C agencies. Carriers pay commission to the network, which keeps a
+# share and pays each agency its split. Every name, rate and amount here is invented.
+id: agency-network
+name: Agency Network (synthetic)
+lineToleranceCents: 1
+
+carriers:
+  - id: northwind
+    name: Northwind Mutual
+    format: northwind-csv
+  - id: bluestem
+    name: Bluestem Insurance Co.
+    format: bluestem-csv

@@ -1,0 +1,36 @@
+# Northwind Mutual: one row per transaction, ISO dates, plain amounts with a minus sign for
+# chargebacks, and a control total on the last row.
+id: northwind-csv
+version: 1
+carrierId: northwind
+kind: csv
+headers:
+  - Policy Number
+  - Insured Name
+  - Line of Business
+  - Transaction
+  - Effective Date
+  - Written Premium
+  - Commission Rate
+  - Commission Paid
+columns:
+  policyNumber: Policy Number
+  insuredName: Insured Name
+  product: Line of Business
+  transactionType: Transaction
+  effectiveDate: Effective Date
+  premium: Written Premium
+  commission: Commission Paid
+dateFormat: YYYY-MM-DD
+products:
+  Personal Auto: auto
+  Homeowners: home
+  Personal Umbrella: umbrella
+transactionTypes:
+  New Business: new
+  Renewal: renewal
+  Cancellation: cancellation
+totalRow:
+  labelColumn: Policy Number
+  label: Statement Total
+  amountColumn: Commission Paid
