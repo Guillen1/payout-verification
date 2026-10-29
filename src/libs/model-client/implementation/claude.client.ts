@@ -29,7 +29,8 @@ export class ClaudeClient extends ModelAbstractClient {
   }
 
   async ask<T>(request: ModelRequest<T>): Promise<ModelResult<T>> {
-    const path = recordingPath(this.config.recordingsDirectory, request, this.config.model);
+    const model = request.escalate ? this.config.escalationModel : this.config.model;
+    const path = recordingPath(this.config.recordingsDirectory, request, model);
 
     if (this.config.mode !== "live") {
       const recorded = await readRecording(path, request);
@@ -37,15 +38,15 @@ export class ClaudeClient extends ModelAbstractClient {
     }
     if (this.anthropic === null) throw new RecordingMissingError(request.task, path);
 
-    const result = await this.askClaude(this.anthropic, request);
+    const result = await this.askClaude(this.anthropic, model, request);
     if (this.config.mode === "record") await saveRecording(path, request, result);
     return result;
   }
 
-  private async askClaude<T>(anthropic: Anthropic, request: ModelRequest<T>): Promise<ModelResult<T>> {
+  private async askClaude<T>(anthropic: Anthropic, model: string, request: ModelRequest<T>): Promise<ModelResult<T>> {
     const started = performance.now();
     const response = await anthropic.beta.messages.parse({
-      model: this.config.model,
+      model,
       max_tokens: 16_000,
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",

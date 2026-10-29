@@ -216,10 +216,16 @@ CI runs the evals live, against the real model, on a schedule and on every promp
 | Bonus agreement to rule set                  | Yes       | Extracts to a closed typed schema (thresholds, tiers, bands, eligibility). A human approves each rule-set version once. |
 | Bonus computation                            | **Never** | A deterministic evaluator over the approved rule set.                                                                   |
 
-Model outputs use forced tool use against closed schemas, with no free-form maps. Every call
+Model outputs use structured outputs against closed schemas, with no free-form maps. Every call
 records its prompt version, model ID, tokens, cost and latency. The model is configurable per
-stage; the extraction default is a cost-efficient model, and residue matching can use a stronger
-one.
+stage.
+
+**Model choice.** Reading a statement is transcription, not reasoning, and every reading is checked
+by code before it can reach a payout. So the default is a mid-tier model (Sonnet), not the largest
+one. A reading that fails its checks (it does not tie out, or a line cannot be parsed) is retried
+once on a stronger model (Opus) before the statement is held for a person. Most statements are read
+at the lower price, and only the hard ones pay for the stronger model. The eval runs on either model
+and is what decides the default: a cheaper model is adopted only if it meets the same floors.
 
 ### 6.4 Data flow for one statement
 
@@ -298,6 +304,7 @@ There are two different failures to detect:
 | Silent counterparty                             | Missing statement                                      | No statement by cadence plus 5 days            | Alert                                                 | Finance ops |
 | Override rate per counterparty                  | Production accuracy decay                              | More than 2x trailing                          | Alert, add the overrides to the eval set              | Engineering |
 | Golden replay (canary)                          | Model or provider regression, separate from data drift | Any diff vs expected                           | Fail the run's health check                           | Engineering |
+| Escalation rate per counterparty                | A layout the default model struggles with, model drift | More than 2x trailing                          | Alert; review the reading notes for that format       | Engineering |
 | Model cost per statement                        | Prompt bloat, retries                                  | More than 2x trailing                          | Warn                                                  | Engineering |
 
 **Kill switches** apply per counterparty, per stage and per tenant. A killed counterparty's
@@ -396,8 +403,7 @@ calls never mix tenants in one context, and each tenant has its own model budget
 
 ## 15. Stack
 
-TypeScript (Node 22) on NestJS, laid out like the team's other services but without CQRS: modules
-with plain services, abstract classes as DI tokens, config validated at startup. The command line
+TypeScript (Node 22) on NestJS, laid out by module without CQRS: modules with plain services, abstract classes as DI tokens, config validated at startup. The command line
 uses nest-commander. Zod validates every boundary (config files, model answers), the Anthropic SDK
 calls Claude with structured outputs, Faker generates the demo data, Vitest with SWC runs the
 tests. Later milestones add Postgres (Kysely or TypeORM) and the review page.

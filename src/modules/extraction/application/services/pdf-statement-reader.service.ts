@@ -3,6 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { z } from "zod";
 import type { Period } from "../../../reconciliation/domain/dates";
 import { parseMoney } from "../../../reconciliation/domain/money";
+import { tieOut } from "../../../reconciliation/domain/tie-out";
 import type { StatementLine } from "../../../reconciliation/domain/types";
 import { ModelAbstractClient } from "../../../../libs/model-client/contract/model.abstract-client";
 import type { ModelUsage } from "../../../../libs/model-client/contract/model.models";
@@ -36,7 +37,8 @@ export interface PdfReading {
   extraction: ExtractionResult;
   /** What the model transcribed, kept so the evals can score the reading itself. */
   transcript: StatementTranscript | null;
-  usage: ModelUsage;
+  /** One call, or two when the reading was retried on the escalation model. */
+  modelCalls: ModelUsage[];
 }
 
 /**
@@ -46,26 +48,45 @@ export interface PdfReading {
  * CSV: codes are mapped with the carrier's format, values are parsed, and the statement must tie
  * out to its printed total before reconciliation. A misread amount therefore holds the statement
  * instead of reaching a payout.
+ *
+ * The default model reads first. If its reading does not tie out, the stronger escalation model
+ * reads the statement once more, and whatever it returns goes on to reconciliation, where a
+ * statement that still does not tie out is held for a person.
  */
 @Injectable()
 export class PdfStatementReaderService {
   constructor(private readonly model: ModelAbstractClient) {}
 
-  async read(input: { fileName: string; data: Buffer; period: Period; format: PdfFormat }): Promise<PdfReading> {
+  async read(input: PdfInput): Promise<PdfReading> {
+    const first = await this.readOnce(input, false);
+    if (first.extraction.status === "extracted" && tieOut(first.extraction.statement).tiesOut) return first;
+
+    const second = await this.readOnce(input, true);
+    return { ...second, modelCalls: [...first.modelCalls, ...second.modelCalls] };
+  }
+
+  private async readOnce(input: PdfInput, escalate: boolean): Promise<PdfReading> {
     const answer = await this.model.ask({
       task: READ_PDF_STATEMENT_TASK,
       promptVersion: PROMPT_VERSION,
       instructions: instructionsFor(input.format),
       inputs: [{ type: "pdf", name: basename(input.fileName), data: input.data }],
-      schema: StatementTranscriptSchema
+      schema: StatementTranscriptSchema,
+      escalate
     });
 
     if (answer.status !== "answered") {
-      return { extraction: { status: "unreadable", reason: answer.reason }, transcript: null, usage: answer.usage };
+      return {
+        extraction: { status: "unreadable", reason: answer.reason },
+        transcript: null,
+        modelCalls: [answer.usage]
+      };
     }
-    return { extraction: readTranscript(answer.output, input), transcript: answer.output, usage: answer.usage };
+    return { extraction: readTranscript(answer.output, input), transcript: answer.output, modelCalls: [answer.usage] };
   }
 }
+
+type PdfInput = { fileName: string; data: Buffer; period: Period; format: PdfFormat };
 
 /** Turns a transcript into a statement. Separate from the model call so it can be tested on its own. */
 export function readTranscript(

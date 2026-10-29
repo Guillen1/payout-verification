@@ -27,8 +27,7 @@ One entry per milestone: what was built, the decisions made along the way, and h
 
 **AI and human**
 
-- The human set the constraints: same conventions as the builder's other repositories, no CQRS, code a
-  new reader can follow.
+- The human set the constraints: strict lint and format rules, no CQRS, code a new reader can follow.
 - The AI wrote the code, tests and docs, running typecheck, lint and tests after each step.
 - Found and fixed before the commit: a type that silently widened, a six-argument helper, and a
   hard-to-read string trick in the report.
@@ -94,13 +93,13 @@ short still shows the model doing the reading the work depends on.
 ## Restructure: NestJS modules, fewer classes (2026-10-29)
 
 **Why.** The human found the model code hard to read: five wrapper classes for two model calls.
-The human also asked for the same project structure as the team's other services, without CQRS.
+The human also asked for a conventional NestJS layout, without CQRS.
 
 **Changed**
 
 - The app is a NestJS command line (`seed`, `reconcile`, `eval`) laid out by module, with `domain/`,
   `application/`, `infrastructure/`, `cli/` and `tests/` folders, abstract classes as DI tokens and
-  config validated at startup, following the team's existing guidelines.
+  config validated at startup.
 - The five model wrappers became one Claude client with recordings built in, plus a stand-in for
   tests. Services return the model's usage with their result, so nothing has to collect it on the
   side.
@@ -122,3 +121,24 @@ The human also asked for the same project structure as the team's other services
 | Typecheck, lint, format                                                      | Pass                           |
 | Tests, including the real Nest module end to end with only the model swapped | 92 pass                        |
 | `seed`, `reconcile` and `eval` built and run through Nest                    | Work; a failure exits non-zero |
+
+## Model choice: Sonnet by default, Opus on retry (2026-10-29)
+
+**Why.** The human asked whether the largest model was needed. It was not: the model transcribes
+statements and proposes column mappings, and code checks every answer before it reaches money. The
+AI had picked Opus by default without measuring whether the task needed it.
+
+**Changed**
+
+- The default model is Sonnet. A PDF reading that does not tie out is retried once on Opus; whatever
+  Opus reads still has to tie out, or the statement is held.
+- The run report and the eval show which model read each statement, and the eval counts retries. A
+  rising retry count is an early sign of a format or model problem.
+- Both models are set in `.env` (`MODEL_NAME`, `MODEL_ESCALATION_NAME`).
+
+**Verified**
+
+| Check                                                                           | Result  |
+| ------------------------------------------------------------------------------- | ------- |
+| Typecheck, lint, format                                                         | Pass    |
+| Tests, including a reading that ties out only on retry, and one that never does | 95 pass |

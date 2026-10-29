@@ -106,8 +106,7 @@ The AI recommended. The human decided:
 - **What to ask before building.** The first message to the firm was kept generic: timeline, delivery
   format, and whether real inputs or an operator conversation were possible. It named no company until
   the research settled.
-- **What not to do.** No CQRS or heavy patterns. Code a new reader can follow. Synthetic data only, with
-  nothing from any employer.
+- **What not to do.** No CQRS or heavy patterns. Code a new reader can follow. Synthetic data only.
 
 ## Phase 5: Design as a system design
 
@@ -127,8 +126,8 @@ The build follows the milestones in the design doc. Each milestone is logged in
 
 **How the work was split**
 
-- The human set conventions (the same lint, format and naming rules as the builder's other repositories)
-  and the constraint that the code must read cleanly to someone new.
+- The human set the conventions (strict lint and format rules, plain naming) and the constraint that
+  the code must read cleanly to someone new.
 - The AI wrote the code, the tests and the documentation, and ran the checks after every step.
 - The human reviews each milestone before it is committed.
 
@@ -158,12 +157,13 @@ The build follows the milestones in the design doc. Each milestone is logged in
 | The first eval draft left a dummy model call and an unused import in the code                                               | Reread before running; rewritten with a small pass-through client                      |
 | A clean-error handler for missing recordings never fired, because a top-level `await` failure is not an unhandled rejection | Ran the eval without recordings and saw a stack trace instead of the message           |
 | README table edits silently missed because the formatter had padded the rows                                                | Grepped for the new rows after editing; regenerated the tables                         |
-| Read "no CQRS" as "no NestJS" and argued against the framework                                                              | The human corrected it; the app now follows the team's NestJS layout without CQRS      |
+| Read "no CQRS" as "no NestJS" and argued against the framework                                                              | The human corrected it; the app now uses NestJS without CQRS                           |
 | After restructuring, a failing command exited with code 0                                                                   | Ran `eval` without recordings and checked the exit code; added an error handler        |
+| Defaulted to the largest model without a reason the task needed it                                                          | The human asked whether it was needed; now Sonnet by default, with Opus as the retry   |
 
 ## Rules followed throughout
 
 - Every factual claim about a company has a source, and vendor marketing is labeled as such.
-- No real customer data, carrier rates or employer code anywhere in the repository.
+- Synthetic data only: no real customer data or carrier rates anywhere in the repository.
 - The model never computes money. In the product, and in how it was built, numbers come from code that
   can be tested.

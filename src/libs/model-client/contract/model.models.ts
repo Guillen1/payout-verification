@@ -8,6 +8,8 @@ export interface ModelRequest<T> {
   instructions: string;
   inputs: ModelInput[];
   schema: z.ZodType<T>;
+  /** Ask the stronger escalation model instead of the default one, for a retry after a failed check. */
+  escalate?: boolean;
 }
 
 export type ModelInput = { type: "text"; text: string } | { type: "pdf"; name: string; data: Buffer };

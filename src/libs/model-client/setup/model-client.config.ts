@@ -8,7 +8,10 @@ const ModelClientConfigSchema = z.object({
    * rest, saving the answers. live: always ask the model and save nothing.
    */
   mode: z.enum(["replay", "record", "live"]).default("record"),
-  model: z.string().min(1).default("claude-opus-5-5"),
+  /** Does the everyday reading. */
+  model: z.string().min(1).default("claude-sonnet-5-5"),
+  /** Retries a reading the default model got wrong, so only the hard documents pay for it. */
+  escalationModel: z.string().min(1).default("claude-opus-5-5"),
   effort: z.enum(["low", "medium", "high"]).default("medium"),
   recordingsDirectory: z.string().min(1).default("recordings")
 });
@@ -17,6 +20,7 @@ const ModelClientConfigSchema = z.object({
 export class ModelClientConfig {
   mode!: z.infer<typeof ModelClientConfigSchema>["mode"];
   model!: string;
+  escalationModel!: string;
   effort!: z.infer<typeof ModelClientConfigSchema>["effort"];
   recordingsDirectory!: string;
 }
@@ -29,6 +33,7 @@ export const modelClientConfigProvider: Provider = {
     const parsed = ModelClientConfigSchema.safeParse({
       mode: valueOf("MODEL_MODE"),
       model: valueOf("MODEL_NAME"),
+      escalationModel: valueOf("MODEL_ESCALATION_NAME"),
       effort: valueOf("MODEL_EFFORT"),
       recordingsDirectory: valueOf("RECORDINGS_DIR")
     });

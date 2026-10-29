@@ -19,7 +19,7 @@ export class ScriptedModelClient extends ModelAbstractClient {
     this.requests.push(request);
     const usage: ModelUsage = {
       task: request.task,
-      model: "scripted",
+      model: request.escalate ? "scripted-escalation" : "scripted",
       source: "scripted",
       inputTokens: 0,
       outputTokens: 0,

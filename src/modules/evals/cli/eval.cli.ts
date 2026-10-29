@@ -52,8 +52,10 @@ export class EvalCli extends CommandRunner {
       "",
       "## Reading PDF statements",
       "",
-      "| Seed | Fields read correctly | Ties out | Findings correct |",
-      "| ---: | ---: | --- | ---: |",
+      `Retried on the escalation model: ${reading.escalations} of ${SEEDS.length}. A rising count means the default model is struggling.`,
+      "",
+      "| Seed | Read by | Fields read correctly | Ties out | Findings correct |",
+      "| ---: | --- | ---: | --- | ---: |",
       ...reading.rows,
       "",
       "## Proposing mappings for changed layouts",
@@ -86,6 +88,7 @@ export class EvalCli extends CommandRunner {
 
     const rows: string[] = [];
     const totals = { fieldsRight: 0, fields: 0, tiedOut: 0, findingsRight: 0, findings: 0 };
+    let escalations = 0;
 
     for (const seed of SEEDS) {
       const demo = await generateDemoData({ tenant, period: PERIOD, seed });
@@ -98,7 +101,9 @@ export class EvalCli extends CommandRunner {
         period: PERIOD,
         format: carrier.format
       });
-      calls.push(result.usage);
+      calls.push(...result.modelCalls);
+      const readBy = result.modelCalls.at(-1)!.model;
+      if (result.modelCalls.length > 1) escalations += 1;
 
       const fields = scoreTranscript(result.transcript, labels.transcript!);
       let tiesOut = false;
@@ -123,12 +128,13 @@ export class EvalCli extends CommandRunner {
       totals.findingsRight += findingsRight;
       totals.findings += labels.lines.length;
       rows.push(
-        `| ${seed} | ${fields.right}/${fields.total} | ${tiesOut ? "yes" : "no"} | ${findingsRight}/${labels.lines.length} |`
+        `| ${seed} | ${readBy} | ${fields.right}/${fields.total} | ${tiesOut ? "yes" : "no"} | ${findingsRight}/${labels.lines.length} |`
       );
     }
 
     return {
       rows,
+      escalations,
       scores: {
         fieldAccuracy: totals.fieldsRight / totals.fields,
         tieOutRate: totals.tiedOut / SEEDS.length,

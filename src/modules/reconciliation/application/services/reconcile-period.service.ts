@@ -97,7 +97,7 @@ export class ReconcilePeriodService {
     try {
       if (format.kind === "pdf") {
         const reading = await this.pdfReader.read({ fileName: file, data, period, format });
-        modelCalls.push(reading.usage);
+        modelCalls.push(...reading.modelCalls);
         return reading.extraction;
       }
 

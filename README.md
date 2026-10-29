@@ -88,6 +88,10 @@ statement file ──▶ extract ──▶ tie out ──▶ match ──▶ cla
 | Adapting to a changed layout             | Claude proposes a mapping; code verifies it; a person approves | Turns an engineering ticket into a review      |
 | Matching, rates, variances, allocation   | Code only                                                      | Money is never computed by a model             |
 
+Claude Sonnet does the reading. A reading that does not tie out is retried once on Claude Opus before
+the statement is held for a person, so only the hard documents pay for the stronger model. Both are
+set in `.env`, and the eval decides whether a cheaper model is good enough.
+
 Every model call uses structured outputs, so its answer is validated against a schema before the code
 sees it. Calls are metered for tokens, latency and cost, and the report lists them.
 

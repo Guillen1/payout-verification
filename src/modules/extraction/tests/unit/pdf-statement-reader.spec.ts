@@ -80,6 +80,32 @@ describe("PdfStatementReaderService", () => {
     expect(request?.instructions).toContain("Credits are printed with a trailing CR.");
   });
 
+  it("asks only the default model when the reading ties out", async () => {
+    const model = new ScriptedModelClient(() => ({ output: transcript }));
+    const reading = await new PdfStatementReaderService(model).read({ ...input, data: Buffer.from("%PDF") });
+
+    expect(reading.extraction.status).toBe("extracted");
+    expect(model.requests.map(request => request.escalate)).toEqual([false]);
+  });
+
+  it("retries on the escalation model when the reading does not tie out", async () => {
+    const misread = { ...transcript, lines: [{ ...transcript.lines[0]!, commission: "210.60" }, transcript.lines[1]!] };
+    const model = new ScriptedModelClient(request => ({ output: request.escalate ? transcript : misread }));
+    const reading = await new PdfStatementReaderService(model).read({ ...input, data: Buffer.from("%PDF") });
+
+    expect(reading.transcript).toEqual(transcript);
+    expect(reading.modelCalls.map(call => call.model)).toEqual(["scripted", "scripted-escalation"]);
+  });
+
+  it("passes on the escalation model's reading even when it still does not tie out", async () => {
+    const misread = { ...transcript, statementTotal: "100.00" };
+    const model = new ScriptedModelClient(() => ({ output: misread }));
+    const reading = await new PdfStatementReaderService(model).read({ ...input, data: Buffer.from("%PDF") });
+
+    expect(model.requests).toHaveLength(2);
+    expect(reading.transcript).toEqual(misread);
+  });
+
   it("reports the statement as unreadable when the model does not answer", async () => {
     const model = new ScriptedModelClient(() => ({ declined: "The model declined (unspecified)." }));
     const { extraction } = await new PdfStatementReaderService(model).read({ ...input, data: Buffer.from("%PDF") });
