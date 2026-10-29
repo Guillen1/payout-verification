@@ -2,7 +2,7 @@ import type { Statement } from "../../reconciliation/domain/types";
 import type { HeaderCheck } from "./header-check";
 import type { LineProblem } from "./statement-line-reader";
 
-/** What came of reading a PDF statement. Only "extracted" goes on to reconciliation. */
+/** What came of reading a statement. Only "extracted" goes on to reconciliation. */
 export type ExtractionResult =
   | { status: "extracted"; statement: Statement }
   | { status: "invalid_lines"; problems: LineProblem[] }

@@ -89,6 +89,13 @@ describe("extractCsvStatement", () => {
     });
   });
 
+  it("reports a file that is not valid CSV as unreadable", () => {
+    expect(extract(`${header}\n"BS-1,unclosed quote`)).toMatchObject({
+      status: "unreadable",
+      reason: expect.stringContaining("Not a valid CSV file") as string
+    });
+  });
+
   it("refuses a statement without a control total", () => {
     const result = extract([header, `BS-1,"A, B",PA,NB,09/03/2026,$1.00,$0.10`].join("\n"));
     expect(result).toMatchObject({

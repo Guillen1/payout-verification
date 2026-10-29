@@ -5,9 +5,10 @@ import type { AgreementTerms } from "../../bonus/application/services/bonus-term
 import type { BonusProgram } from "../../bonus/domain/bonus-program";
 import type { BonusRules } from "../../bonus/domain/bonus-rules";
 import type { BonusFinding } from "../../bonus/domain/check-bonus";
-import { applyRate, type Cents } from "../../reconciliation/domain/money";
+import type { Cents } from "../../reconciliation/domain/money";
 import type { Tenant } from "../../reconciliation/infrastructure/tenant-files";
 import { renderAgreement } from "./agreement-pdf";
+import { commissionAt } from "./commission";
 
 /** Written premium ranges in whole dollars for one agency's year, by product. */
 const ANNUAL_PREMIUM: Record<string, [number, number]> = {
@@ -109,10 +110,12 @@ export async function generateBonusDemo(input: {
 
   const writtenTotal = sum(lines.map(line => line.written));
   const appliedRate = bands[2]!.rateBps; // the planted error: the next band's rate
-  const paidCents = Math.min(applyRate(writtenTotal, appliedRate), maximumBonusCents);
+  const paidCents = Math.min(commissionAt(writtenTotal, appliedRate), maximumBonusCents);
   const eligibleTotal = sum([...eligibleByAgency.values()]);
   const expectedBonusCents =
-    eligibleTotal >= minimumPremiumCents ? Math.min(applyRate(eligibleTotal, boundary.rateBps), maximumBonusCents) : 0;
+    eligibleTotal >= minimumPremiumCents
+      ? Math.min(commissionAt(eligibleTotal, boundary.rateBps), maximumBonusCents)
+      : 0;
 
   const money = (cents: Cents) =>
     (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

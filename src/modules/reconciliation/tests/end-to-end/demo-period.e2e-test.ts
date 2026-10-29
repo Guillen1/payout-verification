@@ -144,6 +144,15 @@ describe("when something goes wrong with one carrier, the others still close", (
     expect(status.northwind?.status).toBe("processed");
   });
 
+  it("reports a malformed CSV as unreadable, not as a model outage", async () => {
+    const breakQuote: Transform = (carrierId, content) =>
+      carrierId === "bluestem" ? `${content.toString()}"BS-9,unclosed quote\n` : content;
+    const status = statusOf(await runPeriod(demo, tenant, answerKeyModel(demo.labels), breakQuote));
+
+    expect(status.bluestem).toMatchObject({ status: "unreadable" });
+    expect(status.northwind?.status).toBe("processed");
+  });
+
   it("holds the PDF carrier when the model is unavailable", async () => {
     const unavailable = new ScriptedModelClient(() => {
       throw new Error("Model service is down");

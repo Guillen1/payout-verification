@@ -2,8 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
-import { parseMoney } from "../../reconciliation/domain/money";
-import { parseCsvRecords } from "../../reconciliation/infrastructure/csv-records";
+import { moneyField, parseCsvRecords } from "../../reconciliation/infrastructure/csv-records";
 import { BonusProgramSchema, type BonusProgram } from "../domain/bonus-program";
 import { BonusRulesSchema, type BonusRules } from "../domain/bonus-rules";
 import type { ProductionRow } from "../domain/compute-bonus";
@@ -31,11 +30,11 @@ export async function loadBonusProgram(
 }
 
 const ProductionRecord = z
-  .object({ agency_id: z.string().min(1), product: z.string().min(1), written_premium: z.string() })
+  .object({ agency_id: z.string().min(1), product: z.string().min(1), written_premium: moneyField })
   .transform((row): ProductionRow => ({
     agencyId: row.agency_id,
     product: row.product,
-    writtenPremiumCents: parseMoney(row.written_premium)
+    writtenPremiumCents: row.written_premium
   }));
 
 /** The network's production report: written premium by agency and product for the program year. */

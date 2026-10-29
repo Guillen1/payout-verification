@@ -205,3 +205,36 @@ recorded answer fails the build.
 | Demo bonus run vs. the answer key                               | Expected $42,546.11, paid $14,901.95, both errors found |
 | Agreement reading eval (Sonnet), three agreements               | Every rule and clause correct; about $0.035 total       |
 | Eval and bonus run in replay mode with no key                   | Pass                                                    |
+
+## Code review before submission (2026-10-29)
+
+**How.** A structured review of the whole repository: every file read in full before a claim that
+something is missing, each finding tied to a `file:line`, ranked critical, major, minor or question,
+and a hard stop on tests that only restate configuration. Critical and major findings were fixed
+before committing; minor ones and a question were left for the human.
+
+**Fixed**
+
+- A tenant-loading test asserted the values typed in the config files. It now tests what the loader
+  promises: a bad value names its file and row, a format tied to the wrong carrier is refused, and an
+  empty end date means no end.
+- The bonus answer key used the domain's own rounding function, so a bug there would have been baked
+  into the expected values. The generator now uses its own math, as the commission generator does.
+- A malformed carrier CSV was reported as "model unavailable", which would send someone to chase the
+  model provider. It is now "could not be read: not a valid CSV file", and only model calls are
+  treated as model failures.
+- A bad amount in the policy book or production report failed without its file or row. Both now
+  report it like any other invalid value.
+
+**Left for the human** (minor): a dead branch in the run report, replayed answers counted in the run's
+cost, a rate finding raised when the network does not qualify, and a shadowed variable name. One
+question: in replay mode, a missing retry recording hides a tie-out failure.
+
+**Verified**
+
+| Check                                                 | Result                                    |
+| ----------------------------------------------------- | ----------------------------------------- |
+| Typecheck, lint, format                               | Pass                                      |
+| Tests                                                 | 139 pass                                  |
+| Both input errors reproduced before and after the fix | Reported correctly after                  |
+| Demo bonus and eval in replay mode                    | Unchanged: $42,546.11 expected; eval pass |

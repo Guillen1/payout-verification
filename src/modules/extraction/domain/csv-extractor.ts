@@ -20,7 +20,12 @@ export function extractCsvStatement(input: {
   format: CsvFormat;
 }): CsvExtractionResult {
   const { format } = input;
-  const rows: string[][] = parse(input.content, { bom: true, skip_empty_lines: true, relax_column_count: true });
+  let rows: string[][];
+  try {
+    rows = parse(input.content, { bom: true, skip_empty_lines: true, relax_column_count: true });
+  } catch (error) {
+    return { status: "unreadable", reason: `Not a valid CSV file: ${(error as Error).message}` };
+  }
   const [header = [], ...body] = rows;
 
   const headerCheck = checkHeaders(format.headers, header);

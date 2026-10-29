@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { stringify } from "csv-stringify/sync";
 import { z } from "zod";
-import { formatMoneyPlain, parseMoney } from "../domain/money";
+import { formatMoneyPlain } from "../domain/money";
 import type { Policy } from "../domain/types";
-import { parseCsvRecords } from "./csv-records";
+import { moneyField, parseCsvRecords } from "./csv-records";
 
 /**
  * The system of record, read from an agency management system export. The demo reads a CSV
@@ -18,7 +18,7 @@ const PolicyRow = z
     term: z.enum(["new", "renewal"]),
     insured_name: z.string().min(1),
     effective_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    premium: z.string().transform(parseMoney)
+    premium: moneyField
   })
   .transform((row): Policy => ({
     policyNumber: row.policy_number,

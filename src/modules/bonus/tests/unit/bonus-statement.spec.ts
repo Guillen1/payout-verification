@@ -43,6 +43,11 @@ describe("readBonusStatement", () => {
     });
   });
 
+  it("holds a file that is not valid CSV", () => {
+    const reading = readBonusStatement(`${statement}"NW-3,unclosed quote\n`, program());
+    expect(reading).toMatchObject({ status: "invalid", problems: [expect.stringContaining("Not a valid CSV file")] });
+  });
+
   it("reports a missing summary row", () => {
     const reading = readBonusStatement(statement.replace("Bonus Rate,3.00%\n", ""), program());
     expect(reading).toEqual({ status: "invalid", problems: ['The "Bonus Rate" row is missing'] });

@@ -34,11 +34,13 @@ export type BonusStatementReading =
  */
 export function readBonusStatement(content: string, program: BonusProgram): BonusStatementReading {
   const { columns, totalLabel } = program.statement;
-  const [header = [], ...rows]: string[][] = parse(content, {
-    bom: true,
-    skip_empty_lines: true,
-    relax_column_count: true
-  });
+  let parsed: string[][];
+  try {
+    parsed = parse(content, { bom: true, skip_empty_lines: true, relax_column_count: true });
+  } catch (error) {
+    return { status: "invalid", problems: [`Not a valid CSV file: ${(error as Error).message}`] };
+  }
+  const [header = [], ...rows] = parsed;
   const problems: string[] = [];
 
   const index = (name: string) => {

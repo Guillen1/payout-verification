@@ -94,17 +94,21 @@ export class ReconcilePeriodService {
     if (data === null) return { status: "statement_missing" };
 
     const format = carrier.format;
-    try {
-      if (format.kind === "pdf") {
+    if (format.kind === "pdf") {
+      try {
         const reading = await this.pdfReader.read({ fileName: file, data, period, format });
         modelCalls.push(...reading.modelCalls);
         return reading.extraction;
+      } catch (error) {
+        return modelUnavailable(error);
       }
+    }
 
-      const content = data.toString("utf8");
-      const extraction = extractCsvStatement({ fileName: file, content, period, format });
-      if (extraction.status !== "format_drift") return extraction;
+    const content = data.toString("utf8");
+    const extraction = extractCsvStatement({ fileName: file, content, period, format });
+    if (extraction.status !== "format_drift") return extraction;
 
+    try {
       const { proposal, usage } = await this.formatProposals.propose({
         current: format,
         fileName: file,
@@ -114,10 +118,14 @@ export class ReconcilePeriodService {
       modelCalls.push(usage);
       return { ...extraction, proposal };
     } catch (error) {
-      // A model outage or a missing recording affects this carrier only.
-      return { status: "model_unavailable", reason: (error as Error).message };
+      return modelUnavailable(error);
     }
   }
+}
+
+/** A model outage or a missing recording holds this carrier only. */
+function modelUnavailable(error: unknown): ReadOutcome {
+  return { status: "model_unavailable", reason: (error as Error).message };
 }
 
 async function readIfPresent(path: string): Promise<Buffer | null> {

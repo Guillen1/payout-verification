@@ -160,6 +160,9 @@ The build follows the milestones in the design doc. Each milestone is logged in
 | Read "no CQRS" as "no NestJS" and argued against the framework                                                              | The human corrected it; the app now uses NestJS without CQRS                           |
 | After restructuring, a failing command exited with code 0                                                                   | Ran `eval` without recordings and checked the exit code; added an error handler        |
 | Defaulted to the largest model without a reason the task needed it                                                          | The human asked whether it was needed; now Sonnet by default, with Opus as the retry   |
+| A config-loading test asserted the values typed in the config files, not the loader's behavior                              | Code review before submission; replaced with behavior tests                            |
+| The bonus answer key reused the domain's rounding function it was meant to check                                            | Code review; the generator now uses its own math                                       |
+| A malformed CSV was reported as a model outage                                                                              | Code review; reproduced on a copy of the data, then fixed and tested                   |
 
 ## Rules followed throughout
 
