@@ -28,6 +28,16 @@ carriers and a hundred agencies, and that is the layer this project covers.
 - **It generalizes.** Many counterparties, each with its own format, matched against a system of record:
   the same shape as retailer deductions at the firm's consumer brands.
 
+## Buy, build, adopt
+
+Not every part of this workflow should be custom software. The split:
+
+|           | What                                                                                                                                                          | Why                                                                                                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Buy**   | Agency-level statement matching (Applied Recon, Vertafore, Ascend) and the AMS's own statement import                                                         | Mature products already do it. Rebuilding it adds cost without adding anything.                                                                                                       |
+| **Build** | Network-level payout verification, bonus agreement verification, allocation to agencies                                                                       | No product covers the layer above a single agency, or bonus terms that differ in every agreement.                                                                                     |
+| **Adopt** | General AI tools for the finance team, such as Claude for reading agreements and drafting carrier correspondence, with clear rules on what data may be shared | Raises the floor for the whole team without custom work. Speech-to-text tools fit other AAI processes, such as recruiting or carrier calls, but not this one, which is all documents. |
+
 ## Assumptions that could change the plan
 
 | Assumption                                                    | If wrong                                                                        |
