@@ -1,0 +1,54 @@
+{
+  "task": "read-bonus-agreement",
+  "promptVersion": 1,
+  "result": {
+    "status": "answered",
+    "output": {
+      "programYear": 2025,
+      "eligibleProducts": {
+        "products": ["auto", "home"],
+        "clause": "3.2"
+      },
+      "minimumPremium": {
+        "amount": "750000.00",
+        "clause": "4.1"
+      },
+      "lossRatioBands": {
+        "bands": [
+          {
+            "lossRatioUpTo": "45.00%",
+            "bonusRate": "3.50%"
+          },
+          {
+            "lossRatioUpTo": "55.00%",
+            "bonusRate": "2.50%"
+          },
+          {
+            "lossRatioUpTo": "65.00%",
+            "bonusRate": "1.00%"
+          }
+        ],
+        "clause": "5.1"
+      },
+      "maximumBonus": {
+        "amount": "200000.00",
+        "clause": "5.3"
+      },
+      "notes": [
+        "Business counts only when written under a producer code listed in Schedule A (clause 3.1).",
+        "Commercial lines and business placed through any residual market mechanism are excluded (clause 3.2).",
+        "Earned Premium and Incurred Losses are valued as of February 28, 2026 (clause 5.2).",
+        "No bonus is payable if the agency agreement is terminated before the payment date of March 31, 2026 (clause 6.3)."
+      ]
+    },
+    "usage": {
+      "task": "read-bonus-agreement",
+      "model": "claude-sonnet-5-5",
+      "source": "live",
+      "inputTokens": 3928,
+      "outputTokens": 361,
+      "latencyMs": 5027,
+      "estimatedCostUsd": 0.011466
+    }
+  }
+}

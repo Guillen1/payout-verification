@@ -1,0 +1,31 @@
+# Northwind Mutual's profit-sharing program, as the network runs it. The carrier's own terms are in
+# rules.yaml, drafted from the agreement by a model and approved by a person.
+id: northwind-2025
+carrierId: northwind
+programYear: 2025
+
+# The network keeps 20% of the bonus; agencies share the rest by the eligible premium each wrote.
+networkShareBps: 2000
+toleranceCents: 100
+
+# Northwind's producer code for each agency in the network.
+producerCodes:
+  NW-40101: ag-101
+  NW-40102: ag-102
+  NW-40103: ag-103
+  NW-40104: ag-104
+  NW-40105: ag-105
+  NW-40106: ag-106
+  NW-40107: ag-107
+  NW-40108: ag-108
+
+statement:
+  columns:
+    producerCode: Producer Code
+    writtenPremium: Eligible Written Premium
+    earnedPremium: Earned Premium
+    incurredLosses: Incurred Losses
+  totalLabel: Total
+  lossRatioLabel: Loss Ratio
+  bonusRateLabel: Bonus Rate
+  bonusPaidLabel: Bonus Payable

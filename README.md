@@ -6,8 +6,9 @@ network owes each of its agencies.
 An agency network receives commission from dozens of carriers. Each carrier sends a monthly statement in
 its own layout, the rates change over time, and every agency gets its own share. Someone has to confirm,
 every month, that each carrier paid the right amount for every policy, notice the policies that were
-never paid at all, and pay each agency correctly. This project does that work and hands a person only
-the lines that need judgment.
+never paid at all, and pay each agency correctly. Once a year, carriers also pay profit-sharing bonuses
+under agreements nobody rechecks by hand. This project does that work and hands a person only what
+needs judgment.
 
 All data in this repository is synthetic. Carriers, agencies, insureds, rates and amounts are invented.
 
@@ -19,15 +20,17 @@ Requires Node 22 and pnpm. Each command builds the app first.
 pnpm install
 pnpm demo:seed        # writes a policy book and three carrier statements (two CSV, one PDF) into data/demo/
 pnpm demo:reconcile   # reconciles the period and writes the report and payout files into out/2026-09/
+pnpm demo:bonus       # verifies a carrier's profit-sharing bonus and writes out/bonus/northwind-2025/
 pnpm eval             # measures the model's reading against the answer key
 ```
 
-The PDF carrier is read by Claude. Its answers are recorded under `recordings/`, so the demo runs
+Claude reads the PDF statement and the bonus agreement. Its answers are recorded under `recordings/`, so the demo runs
 the same way every time and without an API key. To let it call the model for anything not
 recorded, copy `.env.example` to `.env` and add a key.
 
 Open `out/2026-09/report.md` for the finance report. `agency-payouts.csv` is what to pay each agency,
-and `allocation-lines.csv` traces every payout back to a statement row.
+and `allocation-lines.csv` traces every payout back to a statement row. `disputes/` holds a draft
+letter for each carrier that underpaid.
 
 **Break it on purpose.** Rename the `COMM_AMT` column in `data/demo/inbox/2026-09/bluestem.csv` and run
 `pnpm demo:reconcile` again. Bluestem's statement is held as a layout change and nothing from it is paid
@@ -78,15 +81,39 @@ statement file ──▶ extract ──▶ tie out ──▶ match ──▶ cla
 6. **Allocate.** Commission on lines that are not held is split by the agency's share in effect on the
    policy's effective date. Agency plus network plus held always equals what was paid.
 
+## Profit-sharing bonuses
+
+A carrier pays the network a bonus each year based on the premium its agencies wrote and how
+profitable that business was. The terms are in an agreement document, and the carrier sends one
+statement with its own figures. Nobody else recomputes it.
+
+1. **Read the agreement once.** Claude reads it into rules: which lines count, the minimum premium, the
+   bonus rate for each loss ratio band, and the cap. Every rule cites its clause, and terms the rules
+   cannot express are listed for the reviewer. Nothing is computed until a person approves the rules,
+   and a changed agreement document needs a new approval.
+2. **Compute what is owed.** Code applies the approved rules to the network's own production records,
+   with a step-by-step trace that cites the clause behind each number.
+3. **Check the statement.** Each agency's premium is compared with the network's records, the loss
+   ratio is recomputed from the carrier's own figures, and the rate is checked against the band.
+4. **Split what was paid.** The network keeps its share and the rest goes to agencies by eligible
+   premium, to the cent. An underpayment gets a draft dispute letter that quotes the clauses.
+
+The demo plants two errors a carrier really makes: one agency's premium left out, and a loss ratio
+exactly on a band boundary paid at the next band's lower rate. The run finds both and the exact
+shortfall.
+
 ## Where AI is used, and where it is not
 
-| Step                                     | Who does it                                                    | Why                                            |
-| ---------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------- |
-| Reading a PDF statement                  | Claude transcribes the printed lines                           | Layouts vary and only a reader can follow them |
-| Mapping codes, parsing dates and amounts | Code, with the carrier's format                                | Same rules for every file type                 |
-| Checking the reading                     | Code: the lines must tie out to the printed total              | A misread amount holds the statement           |
-| Adapting to a changed layout             | Claude proposes a mapping; code verifies it; a person approves | Turns an engineering ticket into a review      |
-| Matching, rates, variances, allocation   | Code only                                                      | Money is never computed by a model             |
+| Step                                     | Who does it                                                              | Why                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------- |
+| Reading a PDF statement                  | Claude transcribes the printed lines                                     | Layouts vary and only a reader can follow them      |
+| Mapping codes, parsing dates and amounts | Code, with the carrier's format                                          | Same rules for every file type                      |
+| Checking the reading                     | Code: the lines must tie out to the printed total                        | A misread amount holds the statement                |
+| Adapting to a changed layout             | Claude proposes a mapping; code verifies it; a person approves           | Turns an engineering ticket into a review           |
+| Matching, rates, variances, allocation   | Code only                                                                | Money is never computed by a model                  |
+| Reading a bonus agreement                | Claude drafts rules that cite their clauses; a person approves them once | Contracts are prose; the approval makes them config |
+| Computing and checking the bonus         | Code only, from the approved rules                                       | Every number traces to a clause                     |
+| Dispute letters                          | A template filled from the results                                       | Figures sent to a carrier must be exact             |
 
 Claude Sonnet does the reading. A reading that does not tie out is retried once on Claude Opus before
 the statement is held for a person, so only the hard documents pay for the stronger model. Both are
@@ -124,11 +151,12 @@ A NestJS command-line app laid out by module: each one has `domain/` (plain func
 | `src/modules/reconciliation/domain/`         | The money rules as pure functions: dated rates, matching, classification, allocation, tie-out. Start here. |
 | `src/modules/reconciliation/application/`    | Closing a period across carriers, and the report and payout files.                                         |
 | `src/modules/reconciliation/infrastructure/` | Reading the tenant's config and policy book from files.                                                    |
+| `src/modules/bonus/`                         | Profit-sharing bonuses: agreement to rules, expected bonus, statement check, split and dispute letter.     |
 | `src/modules/extraction/`                    | Reading CSV and PDF statements into one shape, and proposing mappings for changed layouts.                 |
 | `src/libs/model-client/`                     | The one door to the model: the Claude client with recordings, and a stand-in for tests.                    |
 | `src/modules/demo/`                          | The seeded synthetic data generator (Faker), including the PDF statement and its answer key.               |
 | `src/modules/evals/`                         | Measures the real model against the answer key, with floors.                                               |
-| `tenants/agency-network/`                    | The demo tenant: carriers, agencies, rates, splits and carrier formats.                                    |
+| `tenants/agency-network/`                    | The demo tenant: carriers, agencies, rates, splits, carrier formats and bonus programs.                    |
 | `recordings/`                                | Recorded model answers, so the demo and CI run without a key.                                              |
 | `docs/design.md`                             | The design: goals, architecture, controls, monitoring and roadmap.                                         |
 | `docs/process/`                              | How this was researched, decided and built with AI, including the research.                                |
@@ -143,7 +171,7 @@ See `docs/design.md` section 18 for detail.
 
 - [x] **1. Domain core and CSV statements.**
 - [x] **2. AI reading.** PDF statements, proposals for changed layouts, recordings, evals.
-- [ ] **3. Bonus verification.** Agreement terms extracted into rules, expected bonus computed and
+- [x] **3. Bonus verification.** Agreement terms extracted into rules, expected bonus computed and
       reconciled, dispute drafts.
 - [ ] **4. Pipeline on Postgres.** Persisted runs, review queue and audit log.
 - [ ] **5. Evals in CI and a fault generator.**

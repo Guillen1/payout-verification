@@ -160,3 +160,48 @@ carriers; real statements and overrides are what the eval set grows from.
 The Sonnet answers are committed under `recordings/`. The demo now closes all three carriers without
 a key, and CI runs the eval in replay mode on every push, so a prompt or schema change that breaks a
 recorded answer fails the build.
+
+## Milestone 3: Bonus verification and dispute drafts (2026-10-29)
+
+**Built**
+
+- Agreement to rules. Claude reads a profit-sharing agreement PDF into rules: eligible lines, minimum
+  premium, loss ratio bands, cap, each with its clause number. Terms the rules cannot express come back
+  as notes, printed at the top of the proposed file for the reviewer. Code converts amounts and rates
+  and rejects a wrong year, unknown products and bands out of order.
+- Approval tied to the document. Approved rules carry the agreement's SHA-256. A changed agreement
+  stops the run and drafts new rules instead of applying old terms.
+- Expected bonus by code, from the network's own production records, with a trace that cites a clause
+  for every step.
+- Statement check: per-agency premium against the network's records, the loss ratio recomputed from
+  the carrier's own totals, and the rate checked against the band.
+- The split of what was paid between the network and agencies, by largest remainder, to the cent.
+- Draft dispute letters for bonuses and, now, for commission statements: underpaid lines and missing
+  commissions per carrier.
+- Demo data with two planted errors: an agency's premium left out, and a loss ratio exactly on a band
+  boundary paid at the next band's rate. The generator does its own math, separate from the module.
+
+**Decisions**
+
+- Premium comes from the network's records; earned premium and losses from the carrier, because only
+  the carrier has them. The report says which figures are whose.
+- The model does not write dispute letters. A template filled from the results keeps every figure
+  exact; the model would add risk and no information.
+- What was paid is split now; a recovered underpayment is split the same way when it arrives.
+- Growth tiers are left for later and named in the design; the demo agreement has none.
+
+**AI and human**
+
+- The human said to start the milestone.
+- The AI checked the model's first draft against the PDF clause by clause, then saved it as the
+  approved rules for the demo. In a real deployment that approval is a finance person's job.
+
+**Verified**
+
+| Check                                                           | Result                                                  |
+| --------------------------------------------------------------- | ------------------------------------------------------- |
+| Typecheck, lint, format                                         | Pass                                                    |
+| Tests, including the real Nest module end to end on three seeds | 133 pass                                                |
+| Demo bonus run vs. the answer key                               | Expected $42,546.11, paid $14,901.95, both errors found |
+| Agreement reading eval (Sonnet), three agreements               | Every rule and clause correct; about $0.035 total       |
+| Eval and bonus run in replay mode with no key                   | Pass                                                    |

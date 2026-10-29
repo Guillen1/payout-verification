@@ -4,6 +4,8 @@ import { Command, CommandRunner, Option } from "nest-commander";
 import { isPeriod } from "../../reconciliation/domain/dates";
 import { renderPolicyBook } from "../../reconciliation/infrastructure/policy-book-file";
 import { loadTenant } from "../../reconciliation/infrastructure/tenant-files";
+import { loadBonusProgram } from "../../bonus/infrastructure/bonus-files";
+import { generateBonusDemo } from "../synthetic/bonus-scenario";
 import { generateDemoData } from "../synthetic/generate-demo";
 
 interface SeedOptions {
@@ -13,7 +15,10 @@ interface SeedOptions {
   seed: number;
 }
 
-/** `seed`: writes a synthetic policy book, carrier statements and their answer key. */
+/** The bonus programs the demo generates data for. */
+const DEMO_BONUS_PROGRAMS = ["northwind-2025"];
+
+/** `seed`: writes a synthetic policy book, carrier statements, bonus files and their answer keys. */
 @Command({ name: "seed", description: "Write one period of synthetic demo data" })
 export class SeedCli extends CommandRunner {
   async run(_arguments: string[], options: SeedOptions): Promise<void> {
@@ -32,6 +37,20 @@ export class SeedCli extends CommandRunner {
       await write(join(options.data, "inbox", options.period, statement.fileName), statement.content);
     }
     await write(join(options.data, "labels", `${options.period}.json`), `${JSON.stringify(demo.labels, null, 2)}\n`);
+
+    for (const programId of DEMO_BONUS_PROGRAMS) {
+      const { program } = await loadBonusProgram(options.tenant, programId);
+      const carrierName = tenant.carriers.find(carrier => carrier.id === program.carrierId)?.name ?? program.carrierId;
+      const bonus = await generateBonusDemo({ tenant, program, carrierName, seed: options.seed });
+      const directory = join(options.data, "bonus", programId);
+      await write(join(directory, "agreement.pdf"), bonus.agreement);
+      await write(join(directory, "statement.csv"), bonus.statement);
+      await write(join(directory, "production.csv"), bonus.production);
+      await write(
+        join(options.data, "labels", `bonus-${programId}.json`),
+        `${JSON.stringify(bonus.labels, null, 2)}\n`
+      );
+    }
   }
 
   @Option({ flags: "--period <period>", description: "Period to generate, like 2026-09", defaultValue: "2026-09" })

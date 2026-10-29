@@ -43,6 +43,16 @@ export function parseMoney(text: string): Cents {
   return isNegative && magnitude !== 0 ? -magnitude : magnitude;
 }
 
+/** Parses a percentage such as "47.20%" or "4.5" into basis points: "47.20%" is 4720. */
+export function parsePercent(text: string): BasisPoints {
+  const match = /^(\d+)(?:\.(\d{1,2}))?\s*%?$/.exec(text.trim());
+  if (!match) {
+    throw new Error(`Not a percentage: "${text}"`);
+  }
+  const [, whole = "0", fraction = ""] = match;
+  return Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+}
+
 const dollarFormat = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
 /** Formats cents for people to read. Display only; never parse this back. */

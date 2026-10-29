@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Command, CommandRunner, Option } from "nest-commander";
 import { renderProposal } from "../../extraction/application/services/format-proposal.service";
+import { renderCommissionDispute } from "../application/reports/dispute-letter";
 import { renderAgencyPayouts, renderAllocationLines } from "../application/reports/payout-files";
 import { renderRunReport } from "../application/reports/run-report";
 import { ReconcilePeriodService, type CarrierOutcome } from "../application/services/reconcile-period.service";
@@ -17,7 +18,7 @@ interface ReconcileOptions {
   period: string;
 }
 
-/** `reconcile`: closes one period and writes the report, payout files and any proposed mappings. */
+/** `reconcile`: closes one period and writes the report, payout files, proposed mappings and dispute drafts. */
 @Command({ name: "reconcile", description: "Reconcile one period of carrier statements" })
 export class ReconcileCli extends CommandRunner {
   constructor(private readonly reconcilePeriod: ReconcilePeriodService) {
@@ -36,6 +37,7 @@ export class ReconcileCli extends CommandRunner {
 
     const outDirectory = join(options.out, options.period);
     await mkdir(join(outDirectory, "proposals"), { recursive: true });
+    await mkdir(join(outDirectory, "disputes"), { recursive: true });
     await writeFile(join(outDirectory, "report.md"), renderRunReport(result, tenant));
     await writeFile(join(outDirectory, "agency-payouts.csv"), renderAgencyPayouts(result));
     await writeFile(join(outDirectory, "allocation-lines.csv"), renderAllocationLines(result));
@@ -49,6 +51,12 @@ export class ReconcileCli extends CommandRunner {
         const verified = outcome.proposal.status === "verified";
         await writeFile(path, renderProposal({ ...outcome.proposal, format: outcome.proposal.format }, verified));
         console.log(`  ${"".padEnd(26)} proposed mapping to review: ${path}`);
+      }
+      const dispute = renderCommissionDispute(outcome, options.period, tenant.name);
+      if (dispute) {
+        const path = join(outDirectory, "disputes", `${outcome.carrier.id}.md`);
+        await writeFile(path, dispute);
+        console.log(`  ${"".padEnd(26)} draft dispute letter: ${path}`);
       }
     }
 

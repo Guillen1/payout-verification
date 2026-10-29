@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyRate, formatMoney, formatRate, parseMoney, sumCents } from "../../domain/money";
+import { applyRate, formatMoney, formatRate, parseMoney, parsePercent, sumCents } from "../../domain/money";
 
 describe("applyRate", () => {
   it("applies a rate in basis points", () => {
@@ -39,6 +39,18 @@ describe("parseMoney", () => {
 
   it.each(["", "abc", "12.345", "1.2.3", "$"])("rejects %j", text => {
     expect(() => parseMoney(text)).toThrow("Not a money amount");
+  });
+});
+
+describe("parsePercent", () => {
+  it("reads percentages as basis points", () => {
+    expect(parsePercent("47.20%")).toBe(4720);
+    expect(parsePercent("4.5")).toBe(450);
+    expect(parsePercent(" 55 % ")).toBe(5500);
+  });
+
+  it("rejects anything else", () => {
+    expect(() => parsePercent("about 5%")).toThrow('Not a percentage: "about 5%"');
   });
 });
 

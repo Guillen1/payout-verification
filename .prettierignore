@@ -2,3 +2,6 @@ data/
 out/
 pnpm-lock.yaml
 dist/
+
+# Recorded model answers, written by the code
+recordings/

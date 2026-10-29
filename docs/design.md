@@ -247,14 +247,30 @@ and is what decides the default: a cheaper model is adopted only if it meets the
 
 ### 6.5 Bonus verification
 
-1. The bonus agreement document is extracted into a `BonusRuleSet` draft: thresholds, growth
-   tiers, loss-ratio bands, eligibility exclusions, payment timing, each with a clause reference.
-2. A human approves the draft, and it becomes an immutable version.
-3. The evaluator computes the expected bonus from production and loss data for the program
-   period, keeping a full computation trace.
-4. The carrier's bonus statement is extracted, tied out and reconciled. Each variance names the
-   rule and the clause that drives it.
-5. The bonus is allocated to agencies per program terms.
+1. **Agreement to rules.** The model reads the agreement PDF into a closed schema: eligible lines,
+   minimum premium, loss ratio bands with rates, and the cap, each with its clause number. Terms the
+   schema cannot express (forfeiture, valuation dates, offsets) come back as notes for the reviewer
+   instead of being dropped or forced into a field. Code converts the text to cents and basis points
+   and rejects a wrong year, unknown products or bands out of order.
+2. **Approval.** A person checks each rule against its clause and saves it as the program's
+   `rules.yaml`. The rules carry the agreement's SHA-256, so a changed document stops the run and asks
+   for a new approval instead of applying old terms to new text.
+3. **Expected bonus.** Code applies the rules to the network's own production records. Earned premium
+   and incurred losses come from the carrier, since only the carrier has them; the report says so.
+   Every step of the calculation cites its clause.
+4. **Statement check.** The carrier's statement must tie out across agencies. Each agency's premium is
+   compared with the network's records, the loss ratio is recomputed from the carrier's own totals,
+   and the rate is checked against the band. Underpaid is a dispute, overpaid is a review, and each
+   finding names its clause.
+5. **Split.** What was actually paid is split: the network keeps its share and the rest goes to
+   agencies by eligible premium, largest remainder, so the shares add up to the cent. A recovered
+   underpayment is split the same way when it arrives.
+6. **Dispute letter.** An underpayment gets a draft letter filled from a template, quoting the
+   clauses, the carrier's figures and ours. A model does not write it: figures sent to a carrier must
+   be exact.
+
+Growth tiers (a rate that depends on premium growth over the prior year) are common in real
+agreements and are the next rule type to add; the demo agreement has none.
 
 ## 7. Correctness controls
 
@@ -341,7 +357,7 @@ tenants/
     counterparties/*.yaml  # fingerprint, mapping@version, cadence, kill switch default
     rates/*.csv            # effective-dated rate rules
     splits/*.csv
-    bonus/*.pdf → rulesets/*.json (approved)
+    bonus/<program>/       # program.yaml (network share, producer codes), rules.yaml (approved)
     labels/
   consumer-brand-demo/     # retailer deductions
     tenant.yaml
@@ -412,16 +428,18 @@ tests. Later milestones add Postgres (Kysely or TypeORM) and the review page.
 
 ```
 src/
-  main.ts, app.module.ts            the command line: seed, reconcile, eval
+  main.ts, app.module.ts            the command line: seed, reconcile, bonus, eval
   libs/model-client/                contract/ (abstract client), implementation/ (Claude + recordings),
                                     setup/ (validated config), testing/ (stand-in)
   modules/
     reconciliation/                 domain/ (pure money rules), application/ (period service, reports),
                                     infrastructure/ (tenant and policy book files), cli/, tests/
     extraction/                     domain/ (formats, CSV reading), application/ (PDF reader, proposals)
+    bonus/                          domain/ (rules, expected bonus, statement check, split),
+                                    application/ (agreement reader, verification, report), cli/, tests/
     demo/                           synthetic data and its answer key, seed command
     evals/                          eval command and layout-change cases
-tenants/                            config and labels per tenant
+tenants/                            config per tenant, including bonus programs and approved rules
 recordings/                         recorded model answers
 docs/                               design.md, process/
 ```
@@ -431,6 +449,7 @@ docs/                               design.md, process/
 ```
 pnpm demo:seed          # policy book + three carrier statements (two CSV, one PDF) for 2026-09
 pnpm demo:reconcile     # full period; PDFs read through recorded model answers; outputs in out/2026-09/
+pnpm demo:bonus         # one bonus program year; outputs in out/bonus/northwind-2025/
 pnpm eval               # model evals against the answer key, with floors
 ```
 
@@ -448,7 +467,7 @@ first so that a short run still shows the model doing the reading the work depen
    CSV layouts verified against the file, and evals with floors. Done.
 3. **Bonus verification.** A bonus agreement extracted into a rule set and approved once, the
    expected bonus computed by code, the carrier's bonus statement reconciled. Dispute drafts for
-   underpayments.
+   underpayments. Done.
 4. **Pipeline on Postgres.** Persisted runs, stages as idempotent jobs, review queue and audit log.
 5. **Evals in CI and a fault generator.** Replay evals gate every push; a separate generator plants
    faults the pipeline author does not see.

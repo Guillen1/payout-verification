@@ -2,6 +2,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Command, CommandRunner } from "nest-commander";
 import type { ModelUsage } from "../../../libs/model-client/contract/model.models";
+import { BonusTermsService } from "../../bonus/application/services/bonus-terms.service";
+import type { BonusRules } from "../../bonus/domain/bonus-rules";
+import { loadBonusProgram } from "../../bonus/infrastructure/bonus-files";
+import { generateBonusDemo } from "../../demo/synthetic/bonus-scenario";
 import { generateDemoData } from "../../demo/synthetic/generate-demo";
 import { FormatProposalService } from "../../extraction/application/services/format-proposal.service";
 import {
@@ -15,11 +19,11 @@ import { DRIFT_CASES } from "../drift-cases";
 
 const PERIOD = "2026-09";
 const SEEDS = [42, 7, 2026];
-const FLOORS = { fieldAccuracy: 0.99, tieOutRate: 1, findingAccuracy: 1, proposalsCorrect: 1 };
+const FLOORS = { fieldAccuracy: 0.99, tieOutRate: 1, findingAccuracy: 1, proposalsCorrect: 1, bonusRulesCorrect: 1 };
 type Measure = keyof typeof FLOORS;
 
 /**
- * `eval`: measures the model on its two jobs against the answer key, and fails below the floors.
+ * `eval`: measures the model on its three jobs against the answer key, and fails below the floors.
  *
  *   MODEL_MODE=record (default)  replays recordings, asks the model for anything not recorded
  *   MODEL_MODE=replay            recordings only; what CI runs
@@ -29,7 +33,8 @@ type Measure = keyof typeof FLOORS;
 export class EvalCli extends CommandRunner {
   constructor(
     private readonly pdfReader: PdfStatementReaderService,
-    private readonly formatProposals: FormatProposalService
+    private readonly formatProposals: FormatProposalService,
+    private readonly bonusTerms: BonusTermsService
   ) {
     super();
   }
@@ -40,8 +45,13 @@ export class EvalCli extends CommandRunner {
 
     const reading = await this.evaluatePdfReading(tenant, calls);
     const proposals = await this.evaluateProposals(tenant, calls);
+    const agreements = await this.evaluateAgreements(tenant, calls);
 
-    const scores: Record<Measure, number> = { ...reading.scores, proposalsCorrect: proposals.score };
+    const scores: Record<Measure, number> = {
+      ...reading.scores,
+      proposalsCorrect: proposals.score,
+      bonusRulesCorrect: agreements.score
+    };
     const passed = (Object.keys(FLOORS) as Measure[]).every(measure => scores[measure] >= FLOORS[measure]);
     const cost = calls.reduce((total, call) => total + (call.estimatedCostUsd ?? 0), 0);
 
@@ -63,6 +73,12 @@ export class EvalCli extends CommandRunner {
       "| Case | Proposal | Maps the changed columns correctly |",
       "| --- | --- | --- |",
       ...proposals.rows,
+      "",
+      "## Reading bonus agreements into rules",
+      "",
+      "| Seed | Draft | Every rule and clause correct | Notes for the reviewer |",
+      "| ---: | --- | --- | ---: |",
+      ...agreements.rows,
       "",
       "## Scores against floors",
       "",
@@ -174,6 +190,43 @@ export class EvalCli extends CommandRunner {
 
     return { rows, score: correct / DRIFT_CASES.length };
   }
+
+  /** Whether the rules drafted from each seed's agreement match the answer key exactly, clauses included. */
+  private async evaluateAgreements(tenant: Tenant, calls: ModelUsage[]) {
+    const { program } = await loadBonusProgram("tenants/agency-network", "northwind-2025");
+    const carrierName = tenant.carriers.find(carrier => carrier.id === program.carrierId)!.name;
+    const products = [...new Set(tenant.rateRules.map(rule => rule.product))].sort();
+    const rows: string[] = [];
+    let correct = 0;
+
+    for (const seed of SEEDS) {
+      const demo = await generateBonusDemo({ tenant, program, carrierName, seed });
+      const { draft, usage } = await this.bonusTerms.draft({
+        program,
+        products,
+        fileName: "agreement.pdf",
+        agreement: demo.agreement
+      });
+      calls.push(usage);
+
+      const matches = draft.status === "drafted" && sameRules(draft.rules, demo.labels.rules);
+      if (matches) correct += 1;
+      const notes = draft.status === "no_answer" ? 0 : draft.notes.length;
+      rows.push(`| ${seed} | ${draft.status} | ${matches ? "yes" : "no"} | ${notes} |`);
+    }
+
+    return { rows, score: correct / SEEDS.length };
+  }
+}
+
+/** Rules compared exactly, except the order products are listed in. */
+function sameRules(actual: BonusRules, expected: BonusRules): boolean {
+  const normalize = (rules: BonusRules) =>
+    JSON.stringify({
+      ...rules,
+      eligibleProducts: { ...rules.eligibleProducts, products: [...rules.eligibleProducts.products].sort() }
+    });
+  return normalize(actual) === normalize(expected);
 }
 
 /** Every field of every line, compared exactly, ignoring differences in spacing. */

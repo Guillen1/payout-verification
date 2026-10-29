@@ -1,0 +1,26 @@
+# Approved rules for Northwind Mutual's 2025 profit-sharing agreement (the demo agreement, seed 42).
+# Drafted by a model, then checked rule by rule against the clause each one cites.
+programId: northwind-2025
+carrierId: northwind
+programYear: 2025
+agreementSha256: 8531b44b0bcec72ca44ef56d5c20f6388febd0d590a35f9404480ae53b51fada
+eligibleProducts:
+  products:
+    - auto
+    - home
+  clause: "3.2"
+minimumPremium:
+  cents: 75000000
+  clause: "4.1"
+lossRatioBands:
+  bands:
+    - upToLossRatioBps: 4500
+      rateBps: 350
+    - upToLossRatioBps: 5500
+      rateBps: 250
+    - upToLossRatioBps: 6500
+      rateBps: 100
+  clause: "5.1"
+maximumBonus:
+  cents: 20000000
+  clause: "5.3"

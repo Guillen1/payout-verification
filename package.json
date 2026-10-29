@@ -18,6 +18,7 @@
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "demo:seed": "nest start -- seed",
     "demo:reconcile": "nest start -- reconcile",
+    "demo:bonus": "nest start -- bonus",
     "eval": "nest start -- eval"
   },
   "dependencies": {
