@@ -1,6 +1,7 @@
 import type { LineFinding } from "../src/domain/line-result";
 import type { Cents } from "../src/domain/money";
 import type { Policy, TransactionType } from "../src/domain/types";
+import type { StatementTranscript } from "../src/extraction/pdf-extractor";
 
 /**
  * One line the carrier will print, plus what the reconciliation is expected to conclude about
@@ -26,6 +27,8 @@ export interface CarrierLabels {
   file: string;
   lines: { row: number; finding: LineFinding; policyNumber: string | null }[];
   missingPolicyNumbers: string[];
+  /** For PDF statements: exactly what a perfect reader would transcribe. */
+  transcript?: StatementTranscript;
 }
 
 /** The answer key for one period: what a correct reconciliation finds. */

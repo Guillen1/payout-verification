@@ -40,8 +40,13 @@ export interface SplitRule extends EffectiveDated {
 /** Where a value came from in the original file, so every number in a report can be traced back. */
 export interface SourceRef {
   file: string;
-  /** 1-based row in the source file, counting the header row as row 1. */
+  /**
+   * For a CSV, the row in the file, counting the header as row 1. For a PDF, the line's position
+   * on the statement, counting from 1.
+   */
   row: number;
+  /** The PDF page the line is printed on. */
+  page?: number;
 }
 
 /** One line of a carrier commission statement, in the tenant's vocabulary. */

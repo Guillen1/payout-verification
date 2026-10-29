@@ -11,3 +11,6 @@ carriers:
   - id: bluestem
     name: Bluestem Insurance Co.
     format: bluestem-csv
+  - id: harbor-pine
+    name: Harbor & Pine Casualty
+    format: harbor-pine-pdf

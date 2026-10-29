@@ -4,11 +4,22 @@ import { z } from "zod";
  * How one carrier lays out its commission statement. Adding a carrier, or adapting to a carrier
  * that changed its layout, means writing or editing one of these, not changing code.
  */
-export const SourceFormatSchema = z
+
+const sharedFields = {
+  id: z.string().min(1),
+  version: z.number().int().positive(),
+  carrierId: z.string().min(1),
+  /** Pattern removed from policy numbers before matching, for example a term suffix like "-02". */
+  policyNumberStripPattern: z.string().optional(),
+  /** Carrier product codes mapped to the tenant's products. */
+  products: z.record(z.string(), z.string()),
+  /** Carrier transaction codes mapped to the tenant's transaction types. */
+  transactionTypes: z.record(z.string(), z.enum(["new", "renewal", "cancellation"]))
+};
+
+export const CsvFormatSchema = z
   .object({
-    id: z.string().min(1),
-    version: z.number().int().positive(),
-    carrierId: z.string().min(1),
+    ...sharedFields,
     kind: z.literal("csv"),
     /** The exact header row. A statement whose headers differ is held as format drift. */
     headers: z.array(z.string().min(1)).min(1),
@@ -22,12 +33,6 @@ export const SourceFormatSchema = z
       commission: z.string()
     }),
     dateFormat: z.enum(["YYYY-MM-DD", "MM/DD/YYYY"]),
-    /** Pattern removed from policy numbers before matching, for example a term suffix like "-02". */
-    policyNumberStripPattern: z.string().optional(),
-    /** Carrier product codes mapped to the tenant's products. */
-    products: z.record(z.string(), z.string()),
-    /** Carrier transaction codes mapped to the tenant's transaction types. */
-    transactionTypes: z.record(z.string(), z.enum(["new", "renewal", "cancellation"])),
     /** The row that carries the carrier's control total. */
     totalRow: z.object({
       labelColumn: z.string(),
@@ -44,4 +49,19 @@ export const SourceFormatSchema = z
     }
   });
 
+export const PdfFormatSchema = z.object({
+  ...sharedFields,
+  kind: z.literal("pdf"),
+  /** What a reader needs to know about this carrier's layout. Passed to the model as-is. */
+  readingNotes: z.string().default("")
+});
+
+export const SourceFormatSchema = z.discriminatedUnion("kind", [CsvFormatSchema, PdfFormatSchema]);
+
+export type CsvFormat = z.infer<typeof CsvFormatSchema>;
+export type PdfFormat = z.infer<typeof PdfFormatSchema>;
 export type SourceFormat = z.infer<typeof SourceFormatSchema>;
+
+export function fileExtension(format: SourceFormat): string {
+  return format.kind === "csv" ? "csv" : "pdf";
+}

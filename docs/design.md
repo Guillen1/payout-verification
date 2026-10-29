@@ -423,29 +423,33 @@ docs/            # design.md, runbook.md, adr/
 ## 17. Demo profile: what a reviewer runs
 
 ```
-docker compose up               # postgres + app, profile=demo, replay mode
-pnpm demo:seed                  # synthetic world + three statement formats for period 2026-09
-pnpm demo:run --period 2026-09  # full pipeline; outputs in ./out/<run>/
-open http://localhost:3000      # review queue, run report, metrics
-pnpm demo:break carrier-c       # renames a column in carrier C's next statement
-pnpm demo:run --period 2026-10  # fingerprint trips, carrier C held, alert fires, others close
-pnpm eval                       # replay evals; held-out format; floors
+pnpm demo:seed          # policy book + three carrier statements (two CSV, one PDF) for 2026-09
+pnpm demo:reconcile     # full period; PDFs read through recorded model answers; outputs in out/2026-09/
+pnpm eval               # model evals against the answer key, with floors
 ```
+
+Later milestones add `docker compose up` for Postgres and the review page.
 
 ## 18. Milestones and cut line
 
-Each item is a hard stop: if time runs out, ship everything above it and say so.
+Each item is a hard stop: if time runs out, ship everything above it and say so. The AI steps come
+first so that a short run still shows the model doing the reading the work depends on.
 
-1. Domain core: money, rules, matching, variance, allocation, with unit tests. Synthetic world
-   with three formats. Demo adapters.
-2. Pipeline stages on pg-boss, tie-out, review queue, audit log, run report, payout files.
-3. Evals: labeled sets, fault corpus, held-out format, CI gate, cassette replay.
-4. Observability: fingerprint drift, control charts, silent counterparty, kill switches, alert
-   routing.
-5. Bonus stage: one agreement into a rule set, the evaluator, the reconciliation.
-6. Second tenant: retailer deductions config plus labels, with no code changes.
-7. Prod adapters (S3, Slack): implemented against contract tests, not deployed.
-8. Runbook and ADRs.
+1. **Domain core and CSV statements.** Money, dated rules, matching, classification, allocation,
+   tie-out, missing payments, config-driven CSV extraction, synthetic data with an answer key. Done.
+2. **AI reading.** The model layer (one interface, structured outputs, metering, record and
+   replay), PDF statements read by the model and checked by the CSV rules, proposals for changed
+   CSV layouts verified against the file, and evals with floors. Done; recordings pending.
+3. **Bonus verification.** A bonus agreement extracted into a rule set and approved once, the
+   expected bonus computed by code, the carrier's bonus statement reconciled. Dispute drafts for
+   underpayments.
+4. **Pipeline on Postgres.** Persisted runs, stages as idempotent jobs, review queue and audit log.
+5. **Evals in CI and a fault generator.** Replay evals gate every push; a separate generator plants
+   faults the pipeline author does not see.
+6. **Monitoring.** Layout drift, control charts on variance, silent carriers, kill switches.
+7. **Second tenant.** Retailer deductions config plus labels, with no code changes.
+8. **Production adapters** (S3, Slack): implemented against contract tests, not deployed.
+9. **Runbook and decision records.**
 
 ## 19. Review questions for the architecture reviewer
 

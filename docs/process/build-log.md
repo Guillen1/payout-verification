@@ -42,3 +42,51 @@ One entry per milestone: what was built, the decisions made along the way, and h
 | Every line vs. the answer key | Exact match on seeds 42, 7 and 2026 |
 | Layout change on one carrier  | That carrier held, the other closes |
 | Missing statement             | Reported, the other carrier closes  |
+
+## Milestone 2: AI reading (2026-10-29)
+
+**Order change.** The human moved the AI steps ahead of the database work, so that a submission cut
+short still shows the model doing the reading the work depends on.
+
+**Built**
+
+- A model layer with one interface. Claude is called through structured outputs, so every answer is
+  validated against a schema before code sees it. Server-side fallbacks retry a declined request on
+  another model. Every call is metered for tokens, latency and estimated cost.
+- Record and replay. Answers are saved under `recordings/`, keyed by the model, the instructions and
+  the exact inputs, so the demo and CI run without a key, and a changed prompt never replays a stale
+  answer.
+- PDF statements. A third carrier sends a two-page PDF with page subtotals and "CR" credits. Claude
+  transcribes it; the same code that reads a CSV then maps codes, parses values and ties out.
+- Proposals for changed layouts. When a CSV's headers change, Claude proposes a new mapping. Code
+  checks that the proposal reads every line and ties out to the cent; a person approves it by copying
+  it into the tenant config.
+- Evals, separate from tests. Tests use a stand-in model that answers from the answer key, so they
+  check everything around the model deterministically. `pnpm eval` measures the real model on three
+  PDF statements and three layout changes, with floors.
+
+**Decisions**
+
+- The model transcribes; it does not interpret. Codes are mapped and amounts parsed by code, so a PDF
+  and a CSV from the same carrier are held to identical rules.
+- A model failure, a refusal or a missing recording holds that one carrier. The others still close.
+- A proposal is never applied automatically.
+- The demo PDF is byte-identical on every run, which is what makes recordings replayable.
+
+**AI and human**
+
+- The human chose the order change and the "buy, build, adopt" framing.
+- The AI read the current SDK reference before writing model code rather than relying on memory,
+  and checked the exact SDK names in the installed package.
+
+**Verified**
+
+| Check                                                                 | Result                                              |
+| --------------------------------------------------------------------- | --------------------------------------------------- |
+| Typecheck, lint, format                                               | Pass                                                |
+| Unit and end-to-end tests                                             | 93 pass                                             |
+| Every line on all three statements vs. the answer key, stand-in model | Exact match on seeds 42, 7 and 2026                 |
+| A misread PDF amount                                                  | Statement held, does not tie out                    |
+| No model available                                                    | PDF carrier held, the CSV carriers close            |
+| Changed layout                                                        | Held, with a verified proposal                      |
+| Real model evals                                                      | **Not yet run: needs an API key to record answers** |

@@ -18,9 +18,9 @@ const { values } = parseArgs({
 if (!isPeriod(values.period)) throw new Error(`--period must look like 2026-09, got "${values.period}"`);
 
 const tenant = await loadTenant(values.tenant);
-const demo = generateDemoData({ tenant, period: values.period, seed: Number(values.seed) });
+const demo = await generateDemoData({ tenant, period: values.period, seed: Number(values.seed) });
 
-const write = async (path: string, content: string) => {
+const write = async (path: string, content: string | Buffer) => {
   await mkdir(join(path, ".."), { recursive: true });
   await writeFile(path, content);
   console.log(`  wrote ${path}`);

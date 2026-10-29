@@ -1,0 +1,17 @@
+# Harbor & Pine Casualty sends a printed PDF statement only. A model transcribes it; the codes
+# and values it reads are mapped and checked with the same rules as every other carrier.
+id: harbor-pine-pdf
+version: 1
+carrierId: harbor-pine
+kind: pdf
+products:
+  AUTO: auto
+  HOME: home
+  UMBR: umbrella
+transactionTypes:
+  NEW: new
+  REN: renewal
+  CXL: cancellation
+readingNotes: |
+  Credits are printed with a trailing "CR" instead of a minus sign.
+  Each page ends with a "Page subtotal" row. Only the last page has the statement total.

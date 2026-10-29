@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { extractCsvStatement } from "./csv-extractor";
-import type { SourceFormat } from "./source-format";
+import type { CsvFormat } from "./source-format";
 
-const format: SourceFormat = {
+const format: CsvFormat = {
   id: "test-csv",
   version: 1,
   carrierId: "bluestem",
@@ -80,11 +80,11 @@ describe("extractCsvStatement", () => {
       ].join("\n")
     );
     expect(result).toEqual({
-      status: "invalid_rows",
+      status: "invalid_lines",
       problems: [
-        { row: 2, column: "PRODUCT_CD", message: 'Unknown product code "XX"' },
-        { row: 3, column: "EFF_DT", message: "Not a calendar date: 2026-13-45" },
-        { row: 3, column: "COMM_AMT", message: 'Not a money amount: "abc"' }
+        { location: "row 2", field: "product", message: 'Unknown product code "XX"' },
+        { location: "row 3", field: "effective date", message: "Not a calendar date: 2026-13-45" },
+        { location: "row 3", field: "commission", message: 'Not a money amount: "abc"' }
       ]
     });
   });
@@ -92,7 +92,7 @@ describe("extractCsvStatement", () => {
   it("refuses a statement without a control total", () => {
     const result = extract([header, `BS-1,"A, B",PA,NB,09/03/2026,$1.00,$0.10`].join("\n"));
     expect(result).toMatchObject({
-      status: "invalid_rows",
+      status: "invalid_lines",
       problems: [{ message: 'No control total row labeled "TOTAL"' }]
     });
   });

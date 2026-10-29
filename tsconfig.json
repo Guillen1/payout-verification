@@ -16,5 +16,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "synthetic", "test", "vitest.config.ts"]
+  "include": ["src", "synthetic", "test", "evals", "vitest.config.ts"]
 }

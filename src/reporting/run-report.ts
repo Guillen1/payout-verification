@@ -2,6 +2,7 @@ import { payoutsByAgency } from "../domain/allocation";
 import type { LineResult } from "../domain/line-result";
 import { formatMoney } from "../domain/money";
 import type { CarrierOutcome, PeriodResult } from "../application/reconcile-period";
+import type { FormatProposal } from "../extraction/propose-format";
 import type { Tenant } from "../tenant/tenant";
 import { allocationsOf } from "./payout-file";
 
@@ -18,7 +19,8 @@ export function renderRunReport(result: PeriodResult, tenant: Tenant): string {
     linesSection(result, "dispute", "Dispute with the carrier", "The money was allocated; the amount is wrong."),
     linesSection(result, "review", "Review before payout", "This money is held until someone decides."),
     missingSection(result),
-    payoutSection(result, agencyNames)
+    payoutSection(result, agencyNames),
+    modelSection(result)
   ];
   return `${sections.filter(Boolean).join("\n\n")}\n`;
 }
@@ -55,28 +57,75 @@ function summaryTable(result: PeriodResult): string {
 
 function notProcessedSection(result: PeriodResult): string {
   const problems = result.carriers.flatMap(outcome => {
+    const name = `**${outcome.carrier.name}**`;
     switch (outcome.status) {
-      case "processed":
+      case "processed": {
         if (outcome.reconciliation.status === "reconciled") return [];
+        const { extractedTotalCents, statedTotalCents } = outcome.reconciliation.tieOut;
         return [
-          `- **${outcome.carrier.name}**: the lines add up to ${formatMoney(outcome.reconciliation.tieOut.extractedTotalCents)} ` +
-            `but the statement total is ${formatMoney(outcome.reconciliation.tieOut.statedTotalCents)}. Nothing was allocated.`
+          `- ${name}: the lines add up to ${formatMoney(extractedTotalCents)} but the statement total is ` +
+            `${formatMoney(statedTotalCents)}. Nothing was allocated.`
         ];
+      }
       case "statement_missing":
-        return [`- **${outcome.carrier.name}**: no statement received at \`${outcome.file}\`.`];
+        return [`- ${name}: no statement received at \`${outcome.file}\`.`];
       case "format_drift":
         return [
-          `- **${outcome.carrier.name}**: the statement layout changed, so it was not processed. ` +
-            `Missing columns: ${list(outcome.headerCheck.missing)}. New columns: ${list(outcome.headerCheck.unexpected)}.`
+          `- ${name}: the statement layout changed, so it was not processed. ` +
+            `Missing columns: ${list(outcome.headerCheck.missing)}. New columns: ${list(outcome.headerCheck.unexpected)}.`,
+          `  - ${describeProposal(outcome.proposal)}`
         ];
-      case "invalid_rows":
+      case "invalid_lines":
         return [
-          `- **${outcome.carrier.name}**: ${outcome.problems.length} unreadable value(s), so it was not processed.`,
-          ...outcome.problems.map(problem => `  - Row ${problem.row}, ${problem.column}: ${problem.message}`)
+          `- ${name}: ${outcome.problems.length} unreadable value(s), so it was not processed.`,
+          ...outcome.problems.map(problem => `  - ${problem.location}, ${problem.field}: ${problem.message}`)
         ];
+      case "unreadable":
+        return [`- ${name}: the statement could not be read. ${outcome.reason}`];
+      case "model_unavailable":
+        return [`- ${name}: not processed because the model was unavailable. ${outcome.reason}`];
     }
   });
   return problems.length === 0 ? "" : ["## Statements not processed", "", ...problems].join("\n");
+}
+
+function describeProposal(proposal: FormatProposal | null): string {
+  if (proposal === null) return "No mapping was proposed because no model is configured.";
+  switch (proposal.status) {
+    case "verified":
+      return (
+        `A model proposed an updated mapping that reads all ${proposal.lineCount} lines and ties out to the cent. ` +
+        `It is in this run's proposals folder, waiting for review.`
+      );
+    case "unverified":
+      return `A model proposed a mapping, but it failed the check: ${proposal.reason} It is not usable as is.`;
+    case "no_answer":
+      return `No mapping was proposed: ${proposal.reason}`;
+  }
+}
+
+function modelSection(result: PeriodResult): string {
+  if (result.modelCalls.length === 0) return "";
+  const rows = result.modelCalls.map(call =>
+    tableRow([
+      call.task,
+      call.model,
+      call.source,
+      call.inputTokens,
+      call.outputTokens,
+      `${(call.latencyMs / 1000).toFixed(1)}s`,
+      call.estimatedCostUsd === null ? "unknown" : `$${call.estimatedCostUsd.toFixed(4)}`
+    ])
+  );
+  return [
+    "## Model use",
+    "",
+    "The model reads PDFs and proposes mappings for changed layouts. It never computes amounts.",
+    "",
+    "| Task | Model | Source | Input tokens | Output tokens | Latency | Est. cost |",
+    "| --- | --- | --- | ---: | ---: | ---: | ---: |",
+    ...rows
+  ].join("\n");
 }
 
 function linesSection(
@@ -157,8 +206,12 @@ function describeStatus(outcome: CarrierOutcome): string {
       return "No statement";
     case "format_drift":
       return "Held: layout changed";
-    case "invalid_rows":
+    case "invalid_lines":
       return "Held: unreadable values";
+    case "unreadable":
+      return "Held: could not be read";
+    case "model_unavailable":
+      return "Held: model unavailable";
     case "processed":
       return "Processed";
   }

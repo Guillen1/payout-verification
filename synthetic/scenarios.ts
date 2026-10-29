@@ -93,6 +93,32 @@ export function bluestemScenario({ factory, rates, period }: ScenarioInput): Car
   };
 }
 
+/**
+ * Harbor & Pine sends a printed PDF. It overpaid one policy, skipped one, and charged back a
+ * cancellation from last month, printed as a credit.
+ */
+export function harborPineScenario({ factory, rates, period }: ScenarioInput): CarrierScenario {
+  const policy = (overrides = {}) => factory.make("harbor-pine", "HP-3", period, overrides);
+
+  const overpaid = policy({ product: "home", term: "renewal" });
+  const skipped = policy();
+  const regular = times(REGULAR_POLICIES - 2, () => policy());
+  const lastMonth = times(PRIOR_PERIOD_POLICIES, () => factory.make("harbor-pine", "HP-3", previousPeriod(period)));
+  const cancelled = lastMonth[0]!;
+
+  const lines: PlannedLine[] = [
+    ...regular.map(p => paidCorrectly(p, rates)),
+    paidAtRate(overpaid, rateOn(rates, overpaid, overpaid.effectiveDate) + 200, "rate_variance"),
+    chargeback(cancelled, rates)
+  ];
+
+  return {
+    book: [overpaid, skipped, ...regular, ...lastMonth],
+    lines: inStatementOrder(lines),
+    missingPolicyNumbers: [skipped.policyNumber]
+  };
+}
+
 function paidCorrectly(policy: Policy, rates: readonly RateRule[]): PlannedLine {
   return paidAtRate(policy, rateOn(rates, policy, policy.effectiveDate), "ok");
 }

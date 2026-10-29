@@ -17,39 +17,42 @@ Requires Node 22 and pnpm.
 
 ```sh
 pnpm install
-pnpm demo:seed        # writes a policy book and two carrier statements for 2026-09 into data/demo/
+pnpm demo:seed        # writes a policy book and three carrier statements (two CSV, one PDF) into data/demo/
 pnpm demo:reconcile   # reconciles the period and writes the report and payout files into out/2026-09/
+pnpm eval             # measures the model's reading against the answer key
 ```
 
-```
-Agency Network (synthetic), period 2026-09
-
-  Northwind Mutual           31 lines, 28 clear, 2 dispute, 1 review, 1 not received; paid $7,590.55
-  Bluestem Insurance Co.     32 lines, 30 clear, 0 dispute, 2 review, 0 not received; paid $7,478.99
-```
+The PDF carrier is read by Claude. Its answers are recorded under `recordings/`, so the demo runs
+the same way every time and without an API key. To let it call the model for anything not
+recorded, copy `.env.example` to `.env` and add a key.
 
 Open `out/2026-09/report.md` for the finance report. `agency-payouts.csv` is what to pay each agency,
 and `allocation-lines.csv` traces every payout back to a statement row.
 
 **Break it on purpose.** Rename the `COMM_AMT` column in `data/demo/inbox/2026-09/bluestem.csv` and run
 `pnpm demo:reconcile` again. Bluestem's statement is held as a layout change and nothing from it is paid
-out, while Northwind still closes.
+out, while the other carriers still close. Claude proposes an updated mapping, the code checks that the
+proposal reads every line and ties out to the cent, and it waits in `out/2026-09/proposals/` for a
+person to approve it.
 
 ## What it finds
 
 The seeded period plants one of each problem a real close runs into:
 
-| Problem                         | Example in the demo                                                           | What happens                                        |
-| ------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
-| Paid at an outdated rate        | Northwind raised its auto rate on Sept 1 but paid two policies at the old one | Disputed with the carrier, with the exact shortfall |
-| Policy never paid               | A Northwind policy that took effect in September is on no line                | Listed as not received, with the expected amount    |
-| Line printed twice              | One Northwind line appears twice                                              | Second copy held for review                         |
-| Blank policy number             | Two Bluestem lines have no policy number                                      | Matched by insured name and effective date          |
-| Premium disagrees with the book | Bluestem reports $120 more premium than the book                              | Held: either side may be out of date                |
-| Policy not in the book          | Bluestem pays on a policy the network has no record of                        | Held for review                                     |
-| Cancellation chargeback         | Both carriers take back commission on a cancelled policy                      | Cleared if taken back at the right rate             |
-| Layout change                   | A renamed column                                                              | The carrier's statement is held, the others close   |
-| Statement never arrived         | A carrier sends nothing                                                       | Reported, the others close                          |
+| Problem                         | Example in the demo                                                           | What happens                                                               |
+| ------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Paid at an outdated rate        | Northwind raised its auto rate on Sept 1 but paid two policies at the old one | Disputed with the carrier, with the exact shortfall                        |
+| Overpayment                     | Harbor & Pine paid one policy above its rate                                  | Disputed, with the exact excess                                            |
+| Policy never paid               | A policy that took effect in September is on no line                          | Listed as not received, with the expected amount                           |
+| Line printed twice              | One Northwind line appears twice                                              | Second copy held for review                                                |
+| Blank policy number             | Two Bluestem lines have no policy number                                      | Matched by insured name and effective date                                 |
+| Premium disagrees with the book | Bluestem reports $120 more premium than the book                              | Held: either side may be out of date                                       |
+| Policy not in the book          | Bluestem pays on a policy the network has no record of                        | Held for review                                                            |
+| Cancellation chargeback         | Every carrier takes back commission on a cancelled policy                     | Cleared if taken back at the right rate                                    |
+| Statement only in PDF           | Harbor & Pine prints two pages with page subtotals and "CR" credits           | Claude transcribes it; the same checks as a CSV apply                      |
+| Misread amount                  | A transcription error in a PDF                                                | The lines no longer tie out, so the statement is held                      |
+| Layout change                   | A renamed column                                                              | That carrier is held, the others close, and a verified mapping is proposed |
+| Statement never arrived         | A carrier sends nothing                                                       | Reported, the others close                                                 |
 
 ## How it works
 
@@ -75,6 +78,19 @@ statement file ──▶ extract ──▶ tie out ──▶ match ──▶ cla
 6. **Allocate.** Commission on lines that are not held is split by the agency's share in effect on the
    policy's effective date. Agency plus network plus held always equals what was paid.
 
+## Where AI is used, and where it is not
+
+| Step                                     | Who does it                                                    | Why                                            |
+| ---------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------- |
+| Reading a PDF statement                  | Claude transcribes the printed lines                           | Layouts vary and only a reader can follow them |
+| Mapping codes, parsing dates and amounts | Code, with the carrier's format                                | Same rules for every file type                 |
+| Checking the reading                     | Code: the lines must tie out to the printed total              | A misread amount holds the statement           |
+| Adapting to a changed layout             | Claude proposes a mapping; code verifies it; a person approves | Turns an engineering ticket into a review      |
+| Matching, rates, variances, allocation   | Code only                                                      | Money is never computed by a model             |
+
+Every model call uses structured outputs, so its answer is validated against a schema before the code
+sees it. Calls are metered for tokens, latency and cost, and the report lists them.
+
 ## Principles
 
 - **Money is integers.** Amounts are cents and rates are basis points. No floating-point dollars.
@@ -99,15 +115,19 @@ were settled, the human decisions, and a log of each milestone with how it was v
 | Path                      | What is there                                                                                                  |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `src/domain/`             | The rules of the business as pure functions: money, dated rules, matching, classification, allocation. No I/O. |
-| `src/extraction/`         | Reading carrier files into statements, driven by format configs.                                               |
+| `src/extraction/`         | Reading CSV and PDF statements into one shape, and proposing mappings for changed layouts.                     |
+| `src/model/`              | The one door to the model: the Claude client, recordings, metering.                                            |
 | `src/tenant/`             | Loading and validating a tenant's config and policy book.                                                      |
 | `src/application/`        | Running a whole period across carriers.                                                                        |
 | `src/reporting/`          | The finance report and payout files.                                                                           |
 | `src/cli/`                | `demo:seed` and `demo:reconcile`.                                                                              |
 | `tenants/agency-network/` | The demo tenant: carriers, agencies, rates, splits and carrier formats.                                        |
-| `synthetic/`              | The seeded demo data generator and its answer key.                                                             |
+| `synthetic/`              | The seeded demo data generator, including the PDF statement, and its answer key.                               |
 | `test/`                   | End-to-end checks of a full period against the answer key, across several seeds.                               |
+| `evals/`                  | Measures the real model against the answer key, with floors.                                                   |
+| `recordings/`             | Recorded model answers, so the demo and CI run without a key.                                                  |
 | `docs/design.md`          | The design: goals, architecture, controls, monitoring and roadmap.                                             |
+| `docs/process/`           | How this was researched, decided and built with AI, including the research.                                    |
 
 ```sh
 pnpm check   # typecheck, lint, format check and tests
@@ -117,14 +137,13 @@ pnpm check   # typecheck, lint, format check and tests
 
 See `docs/design.md` section 18 for detail.
 
-- [x] **1. Domain core and CSV statements.** Matching, classification, allocation, tie-out, missing
-      payments, config-driven extraction, synthetic data with an answer key, report and payout files.
-- [ ] **2. Pipeline on Postgres.** Persisted runs, stages as idempotent jobs, review queue and audit log.
-- [ ] **3. Evals.** Labeled sets per format, a held-out format, a separate fault generator, CI gate,
-      recorded model responses so the demo runs without an API key.
-- [ ] **4. PDF statements and model-assisted matching.** The model reads PDFs and ranks candidates for
-      unmatched lines. It never computes money.
-- [ ] **5. Monitoring.** Layout drift, control charts on variance, silent carriers, kill switches.
-- [ ] **6. Profit-sharing verification.** Bonus agreement terms extracted to rules, expected bonus
-      computed and reconciled.
+- [x] **1. Domain core and CSV statements.**
+- [x] **2. AI reading.** PDF statements, proposals for changed layouts, recordings, evals.
+- [ ] **3. Bonus verification.** Agreement terms extracted into rules, expected bonus computed and
+      reconciled, dispute drafts.
+- [ ] **4. Pipeline on Postgres.** Persisted runs, review queue and audit log.
+- [ ] **5. Evals in CI and a fault generator.**
+- [ ] **6. Monitoring.** Layout drift, variance control charts, silent carriers, kill switches.
 - [ ] **7. A second tenant.** Retailer deductions for a consumer brand, with config only.
+- [ ] **8. Production adapters.**
+- [ ] **9. Runbook and decision records.**

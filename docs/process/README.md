@@ -18,13 +18,14 @@ word for it.**
 
 ## Timeline
 
-| Date       | Phase                                         | Output                                                                |
-| ---------- | --------------------------------------------- | --------------------------------------------------------------------- |
-| 2026-10-27 | Understand the assignment, scan the portfolio | List of current companies and candidate workflows                     |
-| 2026-10-27 | Shortlist and score                           | Six ideas scored on five criteria                                     |
-| 2026-10-27 | Independent reviews and synthesis             | Three agent reports, one decision memo                                |
-| 2026-10-28 | Design                                        | `docs/design.md`, reviewed as a system design                         |
-| 2026-10-28 | Build, milestone 1                            | Domain core, CSV extraction, synthetic data with answer key, demo CLI |
+| Date       | Phase                                         | Output                                                                       |
+| ---------- | --------------------------------------------- | ---------------------------------------------------------------------------- |
+| 2026-10-27 | Understand the assignment, scan the portfolio | List of current companies and candidate workflows                            |
+| 2026-10-27 | Shortlist and score                           | Six ideas scored on five criteria                                            |
+| 2026-10-27 | Independent reviews and synthesis             | Three agent reports, one decision memo                                       |
+| 2026-10-28 | Design                                        | `docs/design.md`, reviewed as a system design                                |
+| 2026-10-28 | Build, milestone 1                            | Domain core, CSV extraction, synthetic data with answer key, demo CLI        |
+| 2026-10-29 | Build, milestone 2                            | Claude reads PDF statements and proposes mappings for changed layouts; evals |
 
 ## Phase 1: Understand the assignment and scan the portfolio
 
@@ -144,15 +145,19 @@ The build follows the milestones in the design doc. Each milestone is logged in
 
 ## What the AI got wrong, and how it was caught
 
-| What happened                                                                               | How it was caught                                                                      |
-| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Earlier notes listed a realized investment as current                                       | Parsing the portfolio page's own data                                                  |
-| Two agents could not load the target company's site and called a claim unverified           | The orchestrator had fetched the page directly and passed the fact on, with its source |
-| A trade-press figure was restated more broadly than the source said                         | The researcher re-read the source and corrected the scope                              |
-| The package manager pulled a TypeScript major version the lint tooling does not yet support | Pinned to the previous major after checking compatibility                              |
-| A type that silently widened to `string`                                                    | Lint rule `no-redundant-type-constituents`                                             |
-| A six-argument helper and a string trick that built table rows                              | Reviewed for readability before the first commit and rewritten                         |
-| Vendor statistics (leakage rates, hours saved) presented as fact                            | Labeled as vendor claims wherever they are used                                        |
+| What happened                                                                                                               | How it was caught                                                                      |
+| --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Earlier notes listed a realized investment as current                                                                       | Parsing the portfolio page's own data                                                  |
+| Two agents could not load the target company's site and called a claim unverified                                           | The orchestrator had fetched the page directly and passed the fact on, with its source |
+| A trade-press figure was restated more broadly than the source said                                                         | The researcher re-read the source and corrected the scope                              |
+| The package manager pulled a TypeScript major version the lint tooling does not yet support                                 | Pinned to the previous major after checking compatibility                              |
+| A type that silently widened to `string`                                                                                    | Lint rule `no-redundant-type-constituents`                                             |
+| A six-argument helper and a string trick that built table rows                                                              | Reviewed for readability before the first commit and rewritten                         |
+| Vendor statistics (leakage rates, hours saved) presented as fact                                                            | Labeled as vendor claims wherever they are used                                        |
+| A test meant to check "wrong column, does not tie out" failed one step earlier, for a different reason                      | The test failed on its own message; the scenario was made precise                      |
+| The first eval draft left a dummy model call and an unused import in the code                                               | Reread before running; rewritten with a small pass-through client                      |
+| A clean-error handler for missing recordings never fired, because a top-level `await` failure is not an unhandled rejection | Ran the eval without recordings and saw a stack trace instead of the message           |
+| README table edits silently missed because the formatter had padded the rows                                                | Grepped for the new rows after editing; regenerated the tables                         |
 
 ## Rules followed throughout
 
