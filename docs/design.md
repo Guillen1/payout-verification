@@ -396,28 +396,28 @@ calls never mix tenants in one context, and each tenant has its own model budget
 
 ## 15. Stack
 
-TypeScript (Node 22), Postgres 16, pg-boss (jobs), Kysely (SQL, typed, no ORM magic), Zod (schemas
-at every boundary), Anthropic SDK (tool use, prompt caching), Hono (review page, health and
-metrics endpoints), Vitest (unit, contract and eval runner), Docker Compose (demo), GitHub Actions
-(CI, eval gate).
+TypeScript (Node 22) on NestJS, laid out like the team's other services but without CQRS: modules
+with plain services, abstract classes as DI tokens, config validated at startup. The command line
+uses nest-commander. Zod validates every boundary (config files, model answers), the Anthropic SDK
+calls Claude with structured outputs, Faker generates the demo data, Vitest with SWC runs the
+tests. Later milestones add Postgres (Kysely or TypeORM) and the review page.
 
 ## 16. Repo layout
 
 ```
 src/
-  domain/        # pure: types, money, rules evaluator, matching, variance, allocation
-  pipeline/      # stages, job wiring, run orchestration
-  ports/         # interfaces
-  adapters/      # demo/* and prod/* per port
-  model/         # prompts (versioned), schemas, client, cassette
-  review/        # queue service + page
-  observability/ # metrics, alerts, kill switches
-  cli/           # run, replay, diff, approve-mapping, approve-ruleset, kill
-tenants/         # config + labels per tenant
-synthetic/       # world generator, format renderers, fault generator (separate)
-evals/           # harness, floors, reports
-migrations/
-docs/            # design.md, runbook.md, adr/
+  main.ts, app.module.ts            the command line: seed, reconcile, eval
+  libs/model-client/                contract/ (abstract client), implementation/ (Claude + recordings),
+                                    setup/ (validated config), testing/ (stand-in)
+  modules/
+    reconciliation/                 domain/ (pure money rules), application/ (period service, reports),
+                                    infrastructure/ (tenant and policy book files), cli/, tests/
+    extraction/                     domain/ (formats, CSV reading), application/ (PDF reader, proposals)
+    demo/                           synthetic data and its answer key, seed command
+    evals/                          eval command and layout-change cases
+tenants/                            config and labels per tenant
+recordings/                         recorded model answers
+docs/                               design.md, process/
 ```
 
 ## 17. Demo profile: what a reviewer runs

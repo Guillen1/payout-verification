@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "description": "Verifies what carriers paid an agency network against what they owed, and what the network owes each agency.",
-  "type": "module",
   "engines": {
     "node": ">=22"
   },
   "packageManager": "pnpm@10.30.0",
   "scripts": {
+    "build": "nest build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -16,19 +16,30 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
-    "demo:seed": "tsx src/cli/seed.ts",
-    "demo:reconcile": "tsx src/cli/reconcile.ts",
-    "eval": "tsx evals/run-evals.ts"
+    "demo:seed": "nest start -- seed",
+    "demo:reconcile": "nest start -- reconcile",
+    "eval": "nest start -- eval"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
+    "@faker-js/faker": "^9.9.0",
+    "@nestjs/common": "^12.3.2",
+    "@nestjs/config": "^12.0.1",
+    "@nestjs/core": "^12.3.2",
     "csv-parse": "^7.0.3",
     "csv-stringify": "^6.9.0",
+    "nest-commander": "^3.21.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
     "yaml": "^2.9.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@nestjs/cli": "^12.0.11",
+    "@nestjs/testing": "^12.3.2",
+    "@swc/cli": "^0.8.2",
+    "@swc/core": "^1.16.20",
     "@types/node": "^26.6.5",
     "@types/pdfkit": "^0.17.7",
     "eslint": "^10.13.0",
@@ -39,6 +50,7 @@
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.1",
+    "unplugin-swc": "^2.0.0",
     "vitest": "^5.0.5"
   }
 }

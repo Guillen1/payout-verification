@@ -90,3 +90,35 @@ short still shows the model doing the reading the work depends on.
 | No model available                                                    | PDF carrier held, the CSV carriers close            |
 | Changed layout                                                        | Held, with a verified proposal                      |
 | Real model evals                                                      | **Not yet run: needs an API key to record answers** |
+
+## Restructure: NestJS modules, fewer classes (2026-10-29)
+
+**Why.** The human found the model code hard to read: five wrapper classes for two model calls.
+The human also asked for the same project structure as the team's other services, without CQRS.
+
+**Changed**
+
+- The app is a NestJS command line (`seed`, `reconcile`, `eval`) laid out by module, with `domain/`,
+  `application/`, `infrastructure/`, `cli/` and `tests/` folders, abstract classes as DI tokens and
+  config validated at startup, following the team's existing guidelines.
+- The five model wrappers became one Claude client with recordings built in, plus a stand-in for
+  tests. Services return the model's usage with their result, so nothing has to collect it on the
+  side.
+- Faker replaced the hand-written random generator, name lists and policy factory.
+- The money rules did not change. They moved into `reconciliation/domain/` as the same plain
+  functions.
+
+**Mistakes caught**
+
+- The AI read "no CQRS" as "no NestJS" and argued against the framework. The human corrected it.
+- A first draft of the outcome types was hard to read; it was replaced with one explicit list.
+- After the move, a failing command still exited with code 0, which CI would read as a pass. Found by
+  running `eval` without recordings and checking the exit code.
+
+**Verified**
+
+| Check                                                                        | Result                         |
+| ---------------------------------------------------------------------------- | ------------------------------ |
+| Typecheck, lint, format                                                      | Pass                           |
+| Tests, including the real Nest module end to end with only the model swapped | 92 pass                        |
+| `seed`, `reconcile` and `eval` built and run through Nest                    | Work; a failure exits non-zero |

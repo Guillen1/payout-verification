@@ -13,7 +13,7 @@ All data in this repository is synthetic. Carriers, agencies, insureds, rates an
 
 ## Run the demo
 
-Requires Node 22 and pnpm.
+Requires Node 22 and pnpm. Each command builds the app first.
 
 ```sh
 pnpm install
@@ -112,22 +112,22 @@ were settled, the human decisions, and a log of each milestone with how it was v
 
 ## Repository tour
 
-| Path                      | What is there                                                                                                  |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `src/domain/`             | The rules of the business as pure functions: money, dated rules, matching, classification, allocation. No I/O. |
-| `src/extraction/`         | Reading CSV and PDF statements into one shape, and proposing mappings for changed layouts.                     |
-| `src/model/`              | The one door to the model: the Claude client, recordings, metering.                                            |
-| `src/tenant/`             | Loading and validating a tenant's config and policy book.                                                      |
-| `src/application/`        | Running a whole period across carriers.                                                                        |
-| `src/reporting/`          | The finance report and payout files.                                                                           |
-| `src/cli/`                | `demo:seed` and `demo:reconcile`.                                                                              |
-| `tenants/agency-network/` | The demo tenant: carriers, agencies, rates, splits and carrier formats.                                        |
-| `synthetic/`              | The seeded demo data generator, including the PDF statement, and its answer key.                               |
-| `test/`                   | End-to-end checks of a full period against the answer key, across several seeds.                               |
-| `evals/`                  | Measures the real model against the answer key, with floors.                                                   |
-| `recordings/`             | Recorded model answers, so the demo and CI run without a key.                                                  |
-| `docs/design.md`          | The design: goals, architecture, controls, monitoring and roadmap.                                             |
-| `docs/process/`           | How this was researched, decided and built with AI, including the research.                                    |
+A NestJS command-line app laid out by module: each one has `domain/` (plain functions, no framework),
+`application/` (services), `infrastructure/` (files and external systems), `cli/` and `tests/`. No CQRS.
+
+| Path                                         | What is there                                                                                              |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `src/modules/reconciliation/domain/`         | The money rules as pure functions: dated rates, matching, classification, allocation, tie-out. Start here. |
+| `src/modules/reconciliation/application/`    | Closing a period across carriers, and the report and payout files.                                         |
+| `src/modules/reconciliation/infrastructure/` | Reading the tenant's config and policy book from files.                                                    |
+| `src/modules/extraction/`                    | Reading CSV and PDF statements into one shape, and proposing mappings for changed layouts.                 |
+| `src/libs/model-client/`                     | The one door to the model: the Claude client with recordings, and a stand-in for tests.                    |
+| `src/modules/demo/`                          | The seeded synthetic data generator (Faker), including the PDF statement and its answer key.               |
+| `src/modules/evals/`                         | Measures the real model against the answer key, with floors.                                               |
+| `tenants/agency-network/`                    | The demo tenant: carriers, agencies, rates, splits and carrier formats.                                    |
+| `recordings/`                                | Recorded model answers, so the demo and CI run without a key.                                              |
+| `docs/design.md`                             | The design: goals, architecture, controls, monitoring and roadmap.                                         |
+| `docs/process/`                              | How this was researched, decided and built with AI, including the research.                                |
 
 ```sh
 pnpm check   # typecheck, lint, format check and tests

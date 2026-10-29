@@ -158,6 +158,8 @@ The build follows the milestones in the design doc. Each milestone is logged in
 | The first eval draft left a dummy model call and an unused import in the code                                               | Reread before running; rewritten with a small pass-through client                      |
 | A clean-error handler for missing recordings never fired, because a top-level `await` failure is not an unhandled rejection | Ran the eval without recordings and saw a stack trace instead of the message           |
 | README table edits silently missed because the formatter had padded the rows                                                | Grepped for the new rows after editing; regenerated the tables                         |
+| Read "no CQRS" as "no NestJS" and argued against the framework                                                              | The human corrected it; the app now follows the team's NestJS layout without CQRS      |
+| After restructuring, a failing command exited with code 0                                                                   | Ran `eval` without recordings and checked the exit code; added an error handler        |
 
 ## Rules followed throughout
 

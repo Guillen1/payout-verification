@@ -5,7 +5,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["node_modules/**", "data/**", "out/**", "eslint.config.mjs"] },
+  { ignores: ["node_modules/**", "data/**", "out/**", "dist/**", "eslint.config.mjs"] },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   prettier,
