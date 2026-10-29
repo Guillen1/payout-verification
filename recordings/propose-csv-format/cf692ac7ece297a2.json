@@ -1,0 +1,33 @@
+{
+  "task": "propose-csv-format",
+  "promptVersion": 1,
+  "result": {
+    "status": "answered",
+    "output": {
+      "columns": {
+        "policyNumber": "POLICY_NO",
+        "insuredName": "NAMED_INSURED",
+        "product": "PRODUCT_CD",
+        "transactionType": "TXN_CD",
+        "effectiveDate": "EFF_DT",
+        "premium": "PREMIUM",
+        "commission": "COMMISSION_AMOUNT"
+      },
+      "totalRow": {
+        "labelColumn": "POLICY_NO",
+        "label": "TOTAL",
+        "amountColumn": "COMMISSION_AMOUNT"
+      },
+      "explanation": "The commission column was renamed from COMM_AMT to COMMISSION_AMOUNT, as the new header has no COMM_AMT and COMMISSION_AMOUNT holds the commission values (e.g. $250.17 on a $2,382.61 premium), so both columns.commission and totalRow.amountColumn now point to it; all other fields keep their current columns because their headers and sample values (e.g. BS-2195449-02, 09/01/2026) are unchanged."
+    },
+    "usage": {
+      "task": "propose-csv-format",
+      "model": "claude-sonnet-5-5",
+      "source": "live",
+      "inputTokens": 1746,
+      "outputTokens": 327,
+      "latencyMs": 4429,
+      "estimatedCostUsd": 0.006762
+    }
+  }
+}

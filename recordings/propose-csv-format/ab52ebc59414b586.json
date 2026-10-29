@@ -1,0 +1,33 @@
+{
+  "task": "propose-csv-format",
+  "promptVersion": 1,
+  "result": {
+    "status": "answered",
+    "output": {
+      "columns": {
+        "policyNumber": "Policy #",
+        "insuredName": "Insured Name",
+        "product": "Line of Business",
+        "transactionType": "Transaction",
+        "effectiveDate": "Effective Date",
+        "premium": "Written Premium",
+        "commission": "Comm Paid"
+      },
+      "totalRow": {
+        "labelColumn": "Policy #",
+        "label": "Statement Total",
+        "amountColumn": "Comm Paid"
+      },
+      "explanation": "The policy number column was renamed from 'Policy Number' to 'Policy #' (values like NW1777040 are the same policy IDs), so policyNumber and totalRow.labelColumn now use 'Policy #'. The commission amount column was renamed from 'Commission Paid' to 'Comm Paid' (e.g. -62.87 equals -571.54 at 11.00%, roughly), so commission and totalRow.amountColumn now use 'Comm Paid'. The total row label 'Statement Total' is unchanged but not visible in the sample rows, so I kept it and am unsure it still matches."
+    },
+    "usage": {
+      "task": "propose-csv-format",
+      "model": "claude-sonnet-5-5",
+      "source": "live",
+      "inputTokens": 1676,
+      "outputTokens": 338,
+      "latencyMs": 3253,
+      "estimatedCostUsd": 0.006732
+    }
+  }
+}

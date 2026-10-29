@@ -1,0 +1,281 @@
+{
+  "task": "read-pdf-statement",
+  "promptVersion": 1,
+  "result": {
+    "status": "answered",
+    "output": {
+      "statementTotal": "5185.74",
+      "lines": [
+        {
+          "page": 1,
+          "policyNumber": "HP 3773443",
+          "insuredName": "Carol Walker",
+          "productCode": "HOME",
+          "transactionCode": "CXL",
+          "effectiveDate": "2026-08-01",
+          "premium": "-738.69",
+          "commission": "-99.72"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3430712",
+          "insuredName": "Justus Hoeger",
+          "productCode": "AUTO",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-01",
+          "premium": "2335.13",
+          "commission": "256.86"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3609497",
+          "insuredName": "Joany Abbott",
+          "productCode": "HOME",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-01",
+          "premium": "2022.45",
+          "commission": "273.03"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3562291",
+          "insuredName": "Kaleigh Ebert",
+          "productCode": "AUTO",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-03",
+          "premium": "1114.11",
+          "commission": "122.55"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3785862",
+          "insuredName": "Stanford Boyer",
+          "productCode": "HOME",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-04",
+          "premium": "1336.16",
+          "commission": "207.10"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3551744",
+          "insuredName": "Rylan Cole",
+          "productCode": "AUTO",
+          "transactionCode": "NEW",
+          "effectiveDate": "2026-09-06",
+          "premium": "1279.23",
+          "commission": "166.30"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3189805",
+          "insuredName": "Shannon Senger",
+          "productCode": "HOME",
+          "transactionCode": "NEW",
+          "effectiveDate": "2026-09-08",
+          "premium": "2747.14",
+          "commission": "412.07"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3946815",
+          "insuredName": "Dorian Ritchie",
+          "productCode": "UMBR",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-08",
+          "premium": "407.54",
+          "commission": "61.13"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3496910",
+          "insuredName": "Brionna Mueller",
+          "productCode": "HOME",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-10",
+          "premium": "1517.01",
+          "commission": "204.80"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3829689",
+          "insuredName": "Rosalee Hammes",
+          "productCode": "UMBR",
+          "transactionCode": "NEW",
+          "effectiveDate": "2026-09-11",
+          "premium": "485.93",
+          "commission": "72.89"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3697970",
+          "insuredName": "Lindsay Doyle-Pouros",
+          "productCode": "AUTO",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-14",
+          "premium": "1712.86",
+          "commission": "188.41"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3323267",
+          "insuredName": "Kenton Abbott",
+          "productCode": "UMBR",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-15",
+          "premium": "308.06",
+          "commission": "46.21"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3988805",
+          "insuredName": "Mona Zulauf",
+          "productCode": "AUTO",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-15",
+          "premium": "1397.42",
+          "commission": "153.72"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3679625",
+          "insuredName": "Rocky Reinger",
+          "productCode": "AUTO",
+          "transactionCode": "NEW",
+          "effectiveDate": "2026-09-18",
+          "premium": "2261.72",
+          "commission": "294.02"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3093564",
+          "insuredName": "Darron Bashirian",
+          "productCode": "AUTO",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-22",
+          "premium": "1245.69",
+          "commission": "137.03"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3733164",
+          "insuredName": "Margarete Walter",
+          "productCode": "AUTO",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-22",
+          "premium": "925.43",
+          "commission": "101.80"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3069560",
+          "insuredName": "Terrence Durgan",
+          "productCode": "AUTO",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-23",
+          "premium": "2052.55",
+          "commission": "225.78"
+        },
+        {
+          "page": 1,
+          "policyNumber": "HP 3529170",
+          "insuredName": "Nikita Berge",
+          "productCode": "HOME",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-23",
+          "premium": "1946.93",
+          "commission": "262.84"
+        },
+        {
+          "page": 2,
+          "policyNumber": "HP 3668451",
+          "insuredName": "Leonie Yundt",
+          "productCode": "AUTO",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-25",
+          "premium": "1611.53",
+          "commission": "177.27"
+        },
+        {
+          "page": 2,
+          "policyNumber": "HP 3862044",
+          "insuredName": "Ellen Konopelski",
+          "productCode": "AUTO",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-26",
+          "premium": "1026.24",
+          "commission": "112.89"
+        },
+        {
+          "page": 2,
+          "policyNumber": "HP 3361455",
+          "insuredName": "Diego Jerde",
+          "productCode": "AUTO",
+          "transactionCode": "NEW",
+          "effectiveDate": "2026-09-28",
+          "premium": "1917.61",
+          "commission": "249.29"
+        },
+        {
+          "page": 2,
+          "policyNumber": "HP 3668444",
+          "insuredName": "Ariel Renner",
+          "productCode": "AUTO",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-28",
+          "premium": "1875.21",
+          "commission": "206.27"
+        },
+        {
+          "page": 2,
+          "policyNumber": "HP 3127165",
+          "insuredName": "Bert Hand",
+          "productCode": "HOME",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-29",
+          "premium": "1513.34",
+          "commission": "204.30"
+        },
+        {
+          "page": 2,
+          "policyNumber": "HP 3241051",
+          "insuredName": "Cristal Dare",
+          "productCode": "UMBR",
+          "transactionCode": "NEW",
+          "effectiveDate": "2026-09-30",
+          "premium": "401.48",
+          "commission": "60.22"
+        },
+        {
+          "page": 2,
+          "policyNumber": "HP 3324206",
+          "insuredName": "Jada Hessel",
+          "productCode": "HOME",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-30",
+          "premium": "4157.31",
+          "commission": "561.24"
+        },
+        {
+          "page": 2,
+          "policyNumber": "HP 3777054",
+          "insuredName": "Rodrick Crist",
+          "productCode": "HOME",
+          "transactionCode": "REN",
+          "effectiveDate": "2026-09-30",
+          "premium": "3906.98",
+          "commission": "527.44"
+        }
+      ]
+    },
+    "usage": {
+      "task": "read-pdf-statement",
+      "model": "claude-sonnet-5-5",
+      "source": "live",
+      "inputTokens": 5364,
+      "outputTokens": 2328,
+      "latencyMs": 12275,
+      "estimatedCostUsd": 0.034008
+    }
+  }
+}

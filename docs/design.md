@@ -445,7 +445,7 @@ first so that a short run still shows the model doing the reading the work depen
    tie-out, missing payments, config-driven CSV extraction, synthetic data with an answer key. Done.
 2. **AI reading.** The model layer (one interface, structured outputs, metering, record and
    replay), PDF statements read by the model and checked by the CSV rules, proposals for changed
-   CSV layouts verified against the file, and evals with floors. Done; recordings pending.
+   CSV layouts verified against the file, and evals with floors. Done.
 3. **Bonus verification.** A bonus agreement extracted into a rule set and approved once, the
    expected bonus computed by code, the carrier's bonus statement reconciled. Dispute drafts for
    underpayments.

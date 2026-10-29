@@ -142,3 +142,21 @@ AI had picked Opus by default without measuring whether the task needed it.
 | ------------------------------------------------------------------------------- | ------- |
 | Typecheck, lint, format                                                         | Pass    |
 | Tests, including a reading that ties out only on retry, and one that never does | 95 pass |
+
+## First recorded evals (2026-10-29)
+
+The real models were run against the answer key for the first time: three PDF statements (one per
+seed) and three layout changes.
+
+| Model                        | Fields read correctly | Ties out | Findings correct | Proposals verified | Retries | Cost  |
+| ---------------------------- | --------------------- | -------- | ---------------- | ------------------ | ------- | ----- |
+| Sonnet (default)             | 627/627               | 3/3      | 78/78            | 3/3                | 0       | $0.12 |
+| Opus (comparison, not saved) | 627/627               | 3/3      | 78/78            | 3/3                | n/a     | $0.25 |
+
+Both meet every floor, and Sonnet does it at half the cost, which supports the default. The test set
+is small and synthetic, so this shows the approach works rather than proving accuracy on real
+carriers; real statements and overrides are what the eval set grows from.
+
+The Sonnet answers are committed under `recordings/`. The demo now closes all three carriers without
+a key, and CI runs the eval in replay mode on every push, so a prompt or schema change that breaks a
+recorded answer fails the build.

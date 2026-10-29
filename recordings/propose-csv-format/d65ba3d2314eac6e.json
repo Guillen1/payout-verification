@@ -1,0 +1,33 @@
+{
+  "task": "propose-csv-format",
+  "promptVersion": 1,
+  "result": {
+    "status": "answered",
+    "output": {
+      "columns": {
+        "policyNumber": "POLICY_NO",
+        "insuredName": "NAMED_INSURED",
+        "product": "PRODUCT_CD",
+        "transactionType": "TXN_CD",
+        "effectiveDate": "EFFECTIVE_DATE",
+        "premium": "PREMIUM",
+        "commission": "COMM_AMT"
+      },
+      "totalRow": {
+        "labelColumn": "POLICY_NO",
+        "label": "TOTAL",
+        "amountColumn": "COMM_AMT"
+      },
+      "explanation": "effectiveDate changed from EFF_DT to EFFECTIVE_DATE because the old header is gone and the new column holds MM/DD/YYYY dates such as 08/21/2026; the other columns only moved position (COMM_AMT and PREMIUM now come first) but kept their names, so the mapping by name is unchanged, and the total row mapping still applies to POLICY_NO and COMM_AMT, though no total row appears in the sample so that is unverified."
+    },
+    "usage": {
+      "task": "propose-csv-format",
+      "model": "claude-sonnet-5-5",
+      "source": "live",
+      "inputTokens": 1745,
+      "outputTokens": 319,
+      "latencyMs": 3130,
+      "estimatedCostUsd": 0.00668
+    }
+  }
+}
