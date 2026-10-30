@@ -8,6 +8,7 @@ function carrier(overrides: Partial<CarrierView> & Pick<CarrierView, "name">): C
   return {
     id: overrides.name.toLowerCase(),
     fileKind: "csv",
+    csvColumns: null,
     state: "processed",
     outcome: "processed",
     hold: null,

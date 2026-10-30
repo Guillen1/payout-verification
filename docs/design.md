@@ -463,8 +463,11 @@ tests.
 
 The admin is a separate package in the same workspace: React 19 on Vite, Tailwind with a few
 shadcn/ui components, and TanStack Query for data. Nest serves it and a small JSON API from the same
-process. It is made to show the outcome to the people who decide, so each screen leads with one number
-and the few items behind it; detail is one click away. A single-page app rather than Next.js: a local
+process. It is made for the people who decide, so it tells the story in order: the problem in
+one sentence, what the checks did this month, the money found and where. Each finding opens beside the
+document it came from (pdf.js draws the printed page and marks the line; a CSV shows its rows), and a
+bonus is drawn as the agreement's rate steps with where the year landed. One admin serves every demo
+tenant; the page names the tenant in a header on each request. A single-page app rather than Next.js: a local
 tool gains nothing from server rendering. The page formats numbers and never computes them: every
 total arrives from the API in cents. Later milestones add Postgres (Kysely or TypeORM).
 

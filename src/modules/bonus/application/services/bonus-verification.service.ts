@@ -11,7 +11,7 @@ import { agreementSha256, BonusTermsService, type BonusTermsDraft } from "./bonu
 export type BonusOutcome =
   | { status: "awaiting_approval"; reason: string; draft: BonusTermsDraft }
   | { status: "statement_invalid"; problems: string[] }
-  | { status: "checked"; check: BonusCheck; allocation: BonusAllocation };
+  | { status: "checked"; check: BonusCheck; allocation: BonusAllocation; rules: BonusRules; statedRateBps: number };
 
 export interface BonusResult {
   program: BonusProgram;
@@ -61,7 +61,17 @@ export class BonusVerificationService {
       toleranceCents: program.toleranceCents
     });
     const allocation = allocateBonus(check.paidCents, program.networkShareBps, check.expected.eligiblePremiumByAgency);
-    return { program, outcome: { status: "checked", check, allocation }, modelCalls: [] };
+    return {
+      program,
+      outcome: {
+        status: "checked",
+        check,
+        allocation,
+        rules: approvedRules,
+        statedRateBps: reading.statement.statedRateBps
+      },
+      modelCalls: []
+    };
   }
 
   private async draftRules(input: {

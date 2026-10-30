@@ -3,13 +3,15 @@ import type { Words } from "@/api/types";
 
 export type TenantWords = Pick<
   Words,
-  "payments" | "counterparties" | "item" | "book" | "amount" | "partner" | "organization"
+  "payments" | "counterparty" | "counterparties" | "statement" | "item" | "book" | "amount" | "partner" | "organization"
 >;
 
 /** Shown until the overview loads: the agency network's words, the server's defaults. */
 const AGENCY_NETWORK: TenantWords = {
   payments: "commissions",
+  counterparty: "carrier",
   counterparties: "carriers",
+  statement: "commission statement",
   item: "policy",
   book: "policy book",
   amount: "premium",

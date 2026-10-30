@@ -22,8 +22,7 @@
     "demo:bonus": "nest start -- bonus",
     "eval": "nest start -- eval",
     "admin": "pnpm --filter web build && nest start --entryFile server",
-    "admin:api": "nest start --watch --entryFile server",
-    "admin:brands": "pnpm --filter web build && TENANT_DIR=tenants/brand-group DATA_DIR=data/brand-group OUT_DIR=out/brand-group EVALS_DIR=out/evals PORT=3001 nest start --entryFile server"
+    "admin:api": "nest start --watch --entryFile server"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

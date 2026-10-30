@@ -1,13 +1,16 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileSearch } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { useCommissionLetter, usePeriod } from "@/api/client";
-import type { CarrierView, LineView } from "@/api/types";
+import type { CarrierView, LineView, MissingView } from "@/api/types";
 import { ApprovalPanel } from "@/components/approval-panel";
 import { LetterDialog } from "@/components/letter-dialog";
+import { CsvExcerpt, PdfExcerpt } from "@/components/statement-excerpt";
 import { ErrorState, Loading } from "@/components/states";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { money, moneyDelta, periodName } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { capitalized, useWords, type TenantWords } from "@/lib/words";
 
 /** One carrier's statement: only what needs a person, and how much each item is worth. */
@@ -53,7 +56,7 @@ export function CarrierPage() {
           <ApprovalPanel approvalId={`layout:${period}:${carrier.id}`} />
         </>
       ) : (
-        <Issues carrier={carrier} words={words} />
+        <Issues carrier={carrier} period={period} words={words} />
       )}
     </div>
   );
@@ -66,26 +69,118 @@ interface Issue {
   what: string;
   tone: "critical" | "warning";
   amount: string;
+  source: { kind: "line"; line: LineView } | { kind: "missing"; entry: MissingView };
 }
 
-function Issues({ carrier, words }: { carrier: CarrierView; words: TenantWords }) {
+function Issues({ carrier, period, words }: { carrier: CarrierView; period: string; words: TenantWords }) {
   const rows = issues(carrier, words);
   if (rows.length === 0) return <p className="text-muted-foreground">Every line was paid as agreed.</p>;
   return (
     <Card className="divide-y">
       {rows.map(row => (
-        <div key={row.key} className="flex items-center gap-6 px-6 py-4">
-          <div className="w-40 shrink-0">
-            <div className="font-medium">{row.policy}</div>
-            <div className="truncate text-xs text-muted-foreground">{row.insured}</div>
-          </div>
-          <div className="flex-1">
-            <Badge tone={row.tone}>{row.what}</Badge>
-          </div>
-          <div className="tabular text-right font-medium">{row.amount}</div>
-        </div>
+        <Dialog key={row.key}>
+          <DialogTrigger asChild>
+            <button className="group flex w-full items-center gap-6 px-6 py-4 text-left transition-colors hover:bg-muted/40">
+              <div className="w-44 shrink-0">
+                <div className="font-medium">{row.policy}</div>
+                <div className="truncate text-xs text-muted-foreground">{row.insured}</div>
+              </div>
+              <div className="flex-1">
+                <Badge tone={row.tone}>{row.what}</Badge>
+              </div>
+              <div className="tabular text-right font-medium">{row.amount}</div>
+              <span className="flex items-center gap-1 text-sm text-muted-foreground group-hover:text-foreground">
+                <FileSearch className="size-4" /> See it
+              </span>
+            </button>
+          </DialogTrigger>
+          <Evidence carrier={carrier} period={period} issue={row} words={words} />
+        </Dialog>
       ))}
     </Card>
+  );
+}
+
+/** The finding next to the document it came from, so anyone can see it with their own eyes. */
+function Evidence({
+  carrier,
+  period,
+  issue,
+  words
+}: {
+  carrier: CarrierView;
+  period: string;
+  issue: Issue;
+  words: TenantWords;
+}) {
+  const { source } = issue;
+  const figures =
+    source.kind === "line"
+      ? [
+          { label: `${capitalized(words.counterparty)} paid`, value: money(source.line.paidCents) },
+          source.line.expectedCents !== null && {
+            label: "The agreement says",
+            value: money(source.line.expectedCents)
+          },
+          { label: "Difference", value: issue.amount, strong: true }
+        ]
+      : [
+          { label: `${capitalized(words.counterparty)} paid`, value: money(0) },
+          {
+            label: "The agreement says",
+            value: source.entry.expectedCents === null ? "Unknown" : money(source.entry.expectedCents)
+          },
+          { label: "Difference", value: issue.amount, strong: true }
+        ];
+
+  return (
+    <DialogContent className="w-[min(900px,calc(100vw-2rem))]">
+      <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
+        {issue.policy} <Badge tone={issue.tone}>{issue.what}</Badge>
+      </DialogTitle>
+      <DialogDescription className="mt-1 text-sm text-muted-foreground">
+        {source.kind === "line"
+          ? `${issue.insured} · ${source.line.explanation}`
+          : `${issue.insured} · dated ${source.entry.effectiveDate}, in the ${words.book}, but on no line of the ${words.statement}.`}
+      </DialogDescription>
+
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        {figures.filter(Boolean).map(figure =>
+          figure ? (
+            <div key={figure.label} className="rounded-lg bg-muted px-4 py-3">
+              <div className="text-xs text-muted-foreground">{figure.label}</div>
+              <div className={cn("tabular text-lg font-semibold", "strong" in figure && "text-critical-ink")}>
+                {figure.value}
+              </div>
+            </div>
+          ) : null
+        )}
+      </div>
+
+      <div className="mt-6">
+        <div className="mb-2 text-sm font-medium">
+          {source.kind === "missing"
+            ? `${carrier.name}'s ${words.statement}: not there`
+            : carrier.fileKind === "pdf"
+              ? `${carrier.name}'s printed ${words.statement}, page ${source.line.page ?? 1}, as the AI read it`
+              : `${carrier.name}'s ${words.statement} file, row ${source.line.row}`}
+        </div>
+        {source.kind === "missing" ? (
+          <p className="rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+            Every line of the {words.statement} was checked. {issue.policy} is not on any of them.
+          </p>
+        ) : carrier.fileKind === "pdf" ? (
+          <PdfExcerpt
+            period={period}
+            carrierId={carrier.id}
+            page={source.line.page ?? 1}
+            findText={source.line.insuredName}
+          />
+        ) : (
+          <CsvExcerpt period={period} carrierId={carrier.id} row={source.line.row} columns={carrier.csvColumns ?? []} />
+        )}
+      </div>
+    </DialogContent>
   );
 }
 
@@ -101,7 +196,8 @@ function issues(carrier: CarrierView, words: TenantWords): Issue[] {
       amount:
         line.disposition === "dispute" && line.varianceCents !== null
           ? moneyDelta(line.varianceCents)
-          : `${money(line.paidCents)} held`
+          : `${money(line.paidCents)} held`,
+      source: { kind: "line", line }
     }));
   const missing: Issue[] = carrier.missing.map(entry => ({
     key: `missing-${entry.policyNumber}`,
@@ -109,7 +205,8 @@ function issues(carrier: CarrierView, words: TenantWords): Issue[] {
     insured: entry.insuredName,
     what: "Never paid",
     tone: "critical",
-    amount: entry.expectedCents === null ? "Unknown" : moneyDelta(-entry.expectedCents)
+    amount: entry.expectedCents === null ? "Unknown" : moneyDelta(-entry.expectedCents),
+    source: { kind: "missing", entry }
   }));
   return [...lines, ...missing];
 }

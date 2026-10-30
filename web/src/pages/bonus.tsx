@@ -2,12 +2,14 @@ import { Navigate, useParams } from "react-router";
 import { ApiError, useBonus, useBonusLetter, useBonusPrograms, useRunBonus } from "@/api/client";
 import type { BonusView } from "@/api/types";
 import { ApprovalPanel } from "@/components/approval-panel";
+import { BonusPicture } from "@/components/bonus-picture";
 import { LetterDialog } from "@/components/letter-dialog";
 import { PageHeader } from "@/components/page-header";
 import { ErrorState, Loading, NotRunYet, RunButton } from "@/components/states";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { money } from "@/lib/format";
+import { capitalized, useWords } from "@/lib/words";
 
 /** With no program in the address, open the first one. */
 export function BonusIndexPage() {
@@ -57,14 +59,16 @@ export function BonusPage() {
           </>
         }
       />
-      {check ? <Checked check={check} /> : <ApprovalPanel approvalId={`bonus:${view.programId}`} />}
+      {check ? <Checked view={view} check={check} /> : <ApprovalPanel approvalId={`bonus:${view.programId}`} />}
     </div>
   );
 }
 
-function Checked({ check }: { check: NonNullable<BonusView["check"]> }) {
+function Checked({ view, check }: { view: BonusView; check: NonNullable<BonusView["check"]> }) {
+  const words = useWords();
   return (
     <>
+      {view.picture && <BonusPicture picture={view.picture} counterparty={capitalized(words.counterparty)} />}
       <Card className="divide-y">
         {check.findings.map(finding => (
           <div key={finding.description} className="flex items-start gap-4 px-6 py-4 text-sm">

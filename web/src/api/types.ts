@@ -59,6 +59,7 @@ export interface CarrierView {
   fileKind: "csv" | "pdf";
   state: "processed" | "held" | "not_received";
   outcome: string;
+  csvColumns: string[] | null;
   hold: Hold | null;
   totals: StatementTotals | null;
   counts: { clear: number; dispute: number; review: number; missing: number };
@@ -106,6 +107,14 @@ export interface BonusView {
   status: "awaiting_approval" | "statement_invalid" | "checked";
   hold: Hold | null;
   draft: { rules: BonusRules; notes: string[] } | null;
+  picture: {
+    bands: { upToLossRatioBps: number; rateBps: number }[];
+    bandsClause: string;
+    lossRatioBps: number;
+    agreementRateBps: number;
+    paidRateBps: number;
+    agencies: { name: string; networkCents: number; statementCents: number }[];
+  } | null;
   check: {
     disposition: Disposition;
     paidCents: number;
@@ -204,7 +213,14 @@ export interface OverviewView {
   period: string | null;
   foundCents: number;
   found: { target: Target; carrierName: string; subject: string; cents: number; reasons: string[] }[];
-  checked: { statements: number; processed: number; lines: number; needsPerson: number; bonusPrograms: number };
+  checked: {
+    statements: number;
+    processed: number;
+    readByModel: number;
+    lines: number;
+    needsPerson: number;
+    bonusPrograms: number;
+  };
   waiting: { target: Target; title: string; detail: string }[];
   accuracy: { passed: boolean; lowestScore: number; readingsTested: number; retries: number } | null;
   costPerStatementUsd: number | null;

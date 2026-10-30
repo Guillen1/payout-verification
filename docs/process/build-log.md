@@ -395,3 +395,30 @@ tables, tabs and the libraries behind them (Recharts, TanStack Table, Radix Tabs
 - The AI checked each runbook step against what the code does. One claim was wrong in the first draft
   (that a silent carrier's policies show up as never paid; they are not checked until its statement
   arrives) and was corrected before committing.
+
+### A story for the people who decide (2026-10-30)
+
+The human said the admin did not tell a clear story of the problem, and that the viewers are not
+technical, so the visuals have to land. Changed:
+
+- The first screen opens with the problem in one sentence, in the tenant's words, then shows the
+  month as it plays out: statements arrived, lines checked, lines needing a person, letters drafted,
+  each counting up in turn, before the money found.
+- Every finding opens beside the document it came from. A printed statement is drawn with pdf.js and
+  the line is marked where it is printed, found by its text on the page; a CSV shows its rows with
+  the line marked and only the columns that matter, under the carrier's own names.
+- The bonus is a picture: the agreement's rate steps with the year's loss ratio on the boundary, the
+  rate the agreement gives and the rate the carrier paid, and each agency's premium with the one left
+  out of the statement hatched.
+- One admin serves both businesses, with a switch in the top bar. The page sends the tenant in a
+  header; the separate port for the second business is gone.
+- Navigation in plain words, in story order: What we found, Commissions, Profit sharing, Can we
+  trust it.
+
+**Verified**
+
+| Check                                                       | Result                        |
+| ----------------------------------------------------------- | ----------------------------- |
+| Tenant chosen per request; unknown tenant refused           | Unit tests pass               |
+| A statement served as it arrived; nothing outside the names | End-to-end test passes        |
+| Every screen and both findings views, both businesses       | Screenshots in `docs/images/` |

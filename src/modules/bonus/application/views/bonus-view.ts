@@ -26,6 +26,15 @@ export interface BonusView {
     steps: CalculationStep[];
     findings: { kind: string; clause: string; description: string }[];
   } | null;
+  /** What the bonus picture draws: the agreement's bands, where the year landed, and each agency's premium. */
+  picture: {
+    bands: { upToLossRatioBps: BasisPoints; rateBps: BasisPoints }[];
+    bandsClause: string;
+    lossRatioBps: BasisPoints;
+    agreementRateBps: BasisPoints;
+    paidRateBps: BasisPoints;
+    agencies: { name: string; networkCents: Cents; statementCents: Cents }[];
+  } | null;
   allocation: {
     networkShareBps: BasisPoints;
     networkCents: Cents;
@@ -44,6 +53,7 @@ export function toBonusView(result: BonusResult, names: Names, ranAt: string): B
     hold: null,
     draft: null,
     check: null,
+    picture: null,
     allocation: null
   };
 
@@ -84,6 +94,23 @@ export function toBonusView(result: BonusResult, names: Names, ranAt: string): B
             clause: finding.clause,
             description: describeFinding(finding, names)
           }))
+        },
+        picture: {
+          bands: outcome.rules.lossRatioBands.bands,
+          bandsClause: outcome.rules.lossRatioBands.clause,
+          lossRatioBps: check.expected.lossRatioBps,
+          agreementRateBps: check.expected.rateBps,
+          paidRateBps: outcome.statedRateBps,
+          agencies: Object.entries(check.expected.eligiblePremiumByAgency).map(([agencyId, networkCents]) => {
+            const reported = check.findings.find(
+              finding => finding.kind === "premium_difference" && finding.agencyId === agencyId
+            );
+            return {
+              name: names.agency(agencyId),
+              networkCents,
+              statementCents: reported?.kind === "premium_difference" ? reported.statementCents : networkCents
+            };
+          })
         },
         allocation: {
           networkShareBps: program.networkShareBps,

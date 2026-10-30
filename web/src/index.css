@@ -69,3 +69,37 @@ body {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* Things that arrive in order on the first screen; still for anyone who prefers less motion. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+.animate-flow {
+  stroke-dasharray: 4 4;
+  animation: flow 900ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-flow {
+    animation: none;
+  }
+}

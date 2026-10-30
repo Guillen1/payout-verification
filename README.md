@@ -44,22 +44,23 @@ person to approve it.
 pnpm admin            # builds the web app and serves it with the API at http://localhost:3000
 ```
 
-A local admin over the same results, made to show the outcome to the people who decide: the money
-found, the statements and the bonus behind it, and how far the AI's reading can be trusted. It runs periods and bonus checks, and approving a proposal
-there writes it into the tenant's config with the reviewer's name in `approvals.jsonl`. The page only
-displays; every amount comes from the API already computed. It listens on localhost only and has no
-logins, so it is for one person on their own machine.
+A local admin over the same results, made for the people who decide, not for engineers. It tells the
+story in order: the problem in one sentence, what the checks did this month as it plays out, the money
+found, and where it is. Every finding opens next to the document it came from, so anyone can see it
+with their own eyes. A switch in the top bar moves between the two businesses the same engine runs.
 
-![The overview](docs/images/admin-overview.png)
+It runs periods and bonus checks, and approving a proposal there writes it into the tenant's config
+with the reviewer's name in `approvals.jsonl`. The page only displays; every amount comes from the API
+already computed. It listens on localhost only and has no logins, so it is for one person on their own
+machine.
 
-The overview leads with the money found, where it is and why, and anything waiting for a person. A
-held carrier shows the model's proposed fix with an approve button, right where the problem is.
+![The first screen](docs/images/admin-overview.png)
 
-| A held carrier, with the proposed fix                         | The bonus check                                 |
-| ------------------------------------------------------------- | ----------------------------------------------- |
-| ![Approving a changed layout](docs/images/admin-approval.png) | ![The bonus check](docs/images/admin-bonus.png) |
-| **Statement lines that need a person**                        | **AI accuracy, and what is watched each month** |
-| ![A carrier's statement lines](docs/images/admin-carrier.png) | ![AI accuracy](docs/images/admin-accuracy.png)  |
+| A finding, on the printed statement the AI read               | Why a bonus is owed, as a picture                    |
+| ------------------------------------------------------------- | ---------------------------------------------------- |
+| ![A finding on the statement](docs/images/admin-carrier.png)  | ![The bonus picture](docs/images/admin-bonus.png)    |
+| **A changed layout, held with the fix to approve**            | **Can we trust it: AI accuracy and monthly signals** |
+| ![Approving a changed layout](docs/images/admin-approval.png) | ![AI accuracy](docs/images/admin-accuracy.png)       |
 
 To work on it, run `pnpm admin:api` (the API on port 3000, restarting on change) and `pnpm --filter web dev`
 (the page on Vite, forwarding `/api`).
@@ -68,7 +69,7 @@ To work on it, run `pnpm admin:api` (the API on port 3000, restarting on change)
 
 ```sh
 pnpm demo:seed:brands   # a beauty brand group, three retailers' remittances (two CSV, one PDF), into data/brand-group/
-pnpm admin:brands       # the same admin for that business at http://localhost:3001
+pnpm admin              # then switch to "Lumen Beauty Group" in the top bar and check the month
 ```
 
 A consumer brand has the same problem in a retailer's clothes. A retailer pays the brand's invoices net
@@ -90,7 +91,7 @@ retailer's printed remittance with the same prompt, told what document it is and
 means. The end-to-end tests run both businesses on three seeds each, and the evals score the reading of
 both kinds of PDF.
 
-| The brand group's overview                                           | A retailer's lines that need a person                                   |
+| The brand group's overview                                           | A retailer's printed remittance, as the AI read it                      |
 | -------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | ![The brand group's overview](docs/images/admin-brands-overview.png) | ![A retailer's remittance lines](docs/images/admin-brands-retailer.png) |
 

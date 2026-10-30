@@ -41,6 +41,11 @@ export interface CarrierView {
   name: string;
   fileKind: "csv" | "pdf";
   state: "processed" | "held" | "not_received";
+  /**
+   * For a CSV, the columns worth showing beside a finding, in the carrier's own names: number,
+   * name, date, amount and what was paid, the last one being what was paid.
+   */
+  csvColumns: string[] | null;
   /** What happened to the statement, for monitoring: "processed", "format_drift", "paused" and so on. */
   outcome: CarrierOutcome["status"];
   /** Why the statement was not processed, in one sentence, with any detail below it. */
@@ -93,6 +98,16 @@ function toCarrierView(outcome: CarrierOutcome, agencyName: (agencyId: string) =
     id: outcome.carrier.id,
     name: outcome.carrier.name,
     fileKind: outcome.carrier.format.kind,
+    csvColumns:
+      outcome.carrier.format.kind === "csv"
+        ? [
+            outcome.carrier.format.columns.policyNumber,
+            outcome.carrier.format.columns.insuredName,
+            outcome.carrier.format.columns.effectiveDate,
+            outcome.carrier.format.columns.premium,
+            outcome.carrier.format.columns.commission
+          ]
+        : null,
     outcome: outcome.status,
     hold: describeHold(outcome),
     totals: null,

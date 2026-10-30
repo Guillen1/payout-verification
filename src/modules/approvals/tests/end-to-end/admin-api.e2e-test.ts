@@ -174,6 +174,23 @@ describe("admin API: run, approve, run again", () => {
     await api().get("/api/periods/not-a-period").expect(400);
   });
 
+  it("serves a statement as it arrived, so a finding can be shown on it", async () => {
+    const csv = await api().get(`/api/periods/${PERIOD}/statements/northwind`).expect(200);
+    expect(csv.headers["content-type"]).toContain("text/csv");
+    expect(csv.text.split("\n")[0]).toContain("Policy Number");
+
+    const pdf = await api().get(`/api/periods/${PERIOD}/statements/harbor-pine`).expect(200);
+    expect(pdf.headers["content-type"]).toContain("application/pdf");
+
+    await api().get(`/api/periods/${PERIOD}/statements/..%2F..%2Ftenant`).expect(404);
+  });
+
+  it("serves its one tenant, whatever business the page asks for", async () => {
+    const tenants = body<{ id: string; name: string }[]>(await api().get("/api/tenants").expect(200));
+    expect(tenants).toHaveLength(1);
+    await api().get("/api/overview").set("X-Tenant", "brand-group").expect(200);
+  });
+
   it("leads the overview with the money found, largest first", async () => {
     const overview = body<OverviewView>(await api().get("/api/overview").expect(200));
     const bonusOwed = bonus.labels.expectedBonusCents - bonus.labels.paidCents;

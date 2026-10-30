@@ -5,11 +5,12 @@ import { BonusModule } from "../bonus/bonus.module";
 import { ReconciliationModule } from "../reconciliation/reconciliation.module";
 import { OverviewService } from "./application/overview.service";
 import { OverviewController } from "./controllers/overview.controller";
+import { TenantsController } from "./controllers/tenants.controller";
 
 /** The admin's first screen: money found, what is waiting for a person, and how far to trust it. */
 @Module({
   imports: [AppPathsModule, ReconciliationModule, BonusModule, ApprovalsModule],
-  controllers: [OverviewController],
+  controllers: [OverviewController, TenantsController],
   providers: [OverviewService]
 })
 export class OverviewModule {}

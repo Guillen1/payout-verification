@@ -15,7 +15,7 @@ lineToleranceCents: 1
 vocabulary:
   counterparty: retailer
   counterparties: retailers
-  statement: remittance advice
+  statement: remittance
   payment: payment
   payments: remittances
   item: invoice

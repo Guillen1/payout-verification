@@ -89,6 +89,24 @@ export class PeriodRunsService {
     );
   }
 
+  /** The statement file a carrier sent for a period, as received, or null if there is none. */
+  async statementFile(
+    paths: AppPaths,
+    period: string,
+    carrierId: string
+  ): Promise<{ content: Buffer; kind: "csv" | "pdf" } | null> {
+    const tenant = await loadTenant(paths.tenant);
+    const carrier = tenant.carriers.find(entry => entry.id === carrierId);
+    if (!carrier) return null;
+    const kind = carrier.format.kind;
+    try {
+      return { content: await readFile(join(paths.data, "inbox", period, `${carrierId}.${kind}`)), kind };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+      throw error;
+    }
+  }
+
   /** The draft dispute letter for a carrier, or null if there is none. */
   async disputeLetter(paths: AppPaths, period: string, carrierId: string): Promise<string | null> {
     const tenant = await loadTenant(paths.tenant);

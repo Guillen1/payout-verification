@@ -35,7 +35,15 @@ export interface OverviewView {
   period: string | null;
   foundCents: Cents;
   found: MoneyFound[];
-  checked: { statements: number; processed: number; lines: number; needsPerson: number; bonusPrograms: number };
+  checked: {
+    statements: number;
+    processed: number;
+    /** Printed statements a model read; the rest were files code read directly. */
+    readByModel: number;
+    lines: number;
+    needsPerson: number;
+    bonusPrograms: number;
+  };
   waiting: Waiting[];
   accuracy: { passed: boolean; lowestScore: number; readingsTested: number; retries: number } | null;
   /** What reading one PDF statement costs at list prices, from the recorded calls. */
@@ -124,6 +132,7 @@ export class OverviewService {
       checked: {
         statements: period?.carriers.length ?? 0,
         processed: processed.length,
+        readByModel: processed.filter(carrier => carrier.fileKind === "pdf").length,
         lines: total(processed.map(carrier => carrier.lines.length)),
         needsPerson: total(
           processed.map(carrier => carrier.counts.dispute + carrier.counts.review + carrier.counts.missing)
