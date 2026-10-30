@@ -233,7 +233,8 @@ pnpm check   # typecheck, lint, format check and tests
 
 ## Roadmap
 
-See `docs/design.md` section 18 for detail.
+See `docs/design.md` section 18 for detail, including what each unfinished milestone would take and why it
+was left out of the demo but is needed before a production release.
 
 - [x] **1. Domain core and CSV statements.**
 - [x] **2. AI reading.** PDF statements, proposals for changed layouts, recordings, evals.

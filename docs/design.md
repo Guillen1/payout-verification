@@ -172,6 +172,10 @@ Each stage:
   concurrency limits per counterparty come from one place;
 - checks the kill switch before doing work.
 
+**Today** the stages run in one process per command (`reconcile`, `bonus`), reading and writing
+files, and the kill switch is checked before a statement is read. The stage boundaries are the same;
+persisting them as jobs is milestone 4 (section 18).
+
 **Why a monolith.** One team, one deploy, one database, transactional consistency between stages.
 Services would add network failure modes and buy nothing at this volume: hundreds of statements a
 month. The stage boundaries are the seams to split along later if volume demands it.
@@ -187,20 +191,23 @@ cannot tell demo from prod.
 | Port                                    | Demo adapter                                                                                                                            | Prod adapter                                       |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
 | `SourceStore` (where statements arrive) | Local folder watcher (`./inbox`)                                                                                                        | S3 bucket with event notification, or IMAP mailbox |
-| `RecordStore` (system of record)        | Postgres seeded by the generator                                                                                                        | EZLynx export via SFTP or API, nightly snapshot    |
+| `RecordStore` (system of record)        | CSV policy book written by the generator (Postgres from milestone 4)                                                                    | EZLynx export via SFTP or API, nightly snapshot    |
 | `ModelClient`                           | Claude API with a **record/replay cassette**: live when a key is present and records responses; replays recorded responses when offline | Claude API, with retries, timeouts, budget guard   |
 | `Clock`                                 | Fixed or controllable clock (period close on demand)                                                                                    | System clock                                       |
-| `Notifier`                              | Console plus `./alerts.log` plus the review page banner                                                                                 | Slack or PagerDuty, routed by alert owner          |
+| `Notifier`                              | Console, the admin's overview banners and its monthly signals                                                                           | Slack or PagerDuty, routed by alert owner          |
 | `BlobStore` (originals, outputs)        | Local `./data`                                                                                                                          | S3 with object lock for originals                  |
 | `SecretStore`                           | `.env` (no secrets needed in replay mode)                                                                                               | Cloud secrets manager                              |
 | `Publisher` (payout files)              | `./out/<run>/`                                                                                                                          | S3 plus an accounting-system import drop           |
 
-**The demo is still production code.** The same migrations, the same job queue, the same stages
-and the same evals run in both profiles. Only adapters differ, and each adapter has a contract
-test that both implementations pass.
+**The demo is production code where it matters.** The money rules, the extraction, the model client
+and the evals are what production runs. What differs today: the file adapters are wired in directly,
+not chosen by a profile, and there are no migrations, job queue or contract tests yet. Those come
+with milestones 4 and 8, and the target stays the one in this table: the same stages and evals in
+both profiles, only adapters differing, each adapter passing one contract test in both forms.
 
 Record/replay makes the Loom deterministic and lets a reviewer run the demo without an API key.
-CI runs the evals live, against the real model, on a schedule and on every prompt change.
+Today CI replays the evals on every push, and live runs are by hand (`MODEL_MODE=live pnpm eval`).
+A scheduled live run is part of milestone 5.
 
 ### 6.3 Where the model is used, and where it is not
 
@@ -287,7 +294,12 @@ agreements and are the next rule type to add; the demo agreement has none.
 
 ## 8. Human in the loop
 
-The review queue is one table plus one server-rendered page. Each item shows the source excerpt,
+**Today** a person decides one kind of item, in the admin: a proposed mapping for a changed layout,
+or bonus rules read from an agreement. Approving writes the config with the reviewer's name and
+appends to `approvals.jsonl`; held lines are listed for a person but decided outside the tool. The
+queue below needs stored runs and is milestone 4.
+
+The review queue is one table plus one page in the admin. Each item shows the source excerpt,
 the candidate decision, the model's reasoning and confidence, and the rule involved. The
 available actions are accept, override (choose a record or amount), hold and reassign.
 
@@ -353,6 +365,10 @@ also exposed in Prometheus format for prod scraping.
   or precision drops at all. Cost and latency deltas are reported on the PR.
 - **Two modes.** Replay mode runs in milliseconds on every push. Live mode runs nightly and on
   prompt or model changes.
+
+**Today:** the labeled set is the generator's answer key for both tenants on three seeds, the
+floors gate CI on every push in replay mode, and live runs are by hand. The fault corpus, the
+held-out format and the nightly live run are milestone 5.
 
 ## 11. Multi-tenancy and the second company
 
@@ -492,23 +508,102 @@ Later milestones add `docker compose up` for Postgres.
 Each item is a hard stop: if time runs out, ship everything above it and say so. The AI steps come
 first so that a short run still shows the model doing the reading the work depends on.
 
+| #   | Milestone                         | Status                                                            |
+| --- | --------------------------------- | ----------------------------------------------------------------- |
+| 1   | Domain core and CSV statements    | Done                                                              |
+| 2   | AI reading                        | Done                                                              |
+| 3   | Bonus verification                | Done                                                              |
+| 4   | Pipeline on Postgres              | Not started: needed for production, not for the demo              |
+| 5   | Evals in CI and a fault generator | Replay evals gate CI; the fault generator is not built            |
+| 6   | Monitoring                        | Kill switch and the signals that need no history; rest waits on 4 |
+| 7   | Second tenant                     | Done                                                              |
+| 8   | Production adapters               | Not started: needed for production, not for the demo              |
+| 9   | Runbook and decision records      | Done                                                              |
+
 1. **Domain core and CSV statements.** Money, dated rules, matching, classification, allocation,
-   tie-out, missing payments, config-driven CSV extraction, synthetic data with an answer key. Done.
+   tie-out, missing payments, config-driven CSV extraction, synthetic data with an answer key.
 2. **AI reading.** The model layer (one interface, structured outputs, metering, record and
    replay), PDF statements read by the model and checked by the CSV rules, proposals for changed
-   CSV layouts verified against the file, and evals with floors. Done.
+   CSV layouts verified against the file, and evals with floors.
 3. **Bonus verification.** A bonus agreement extracted into a rule set and approved once, the
    expected bonus computed by code, the carrier's bonus statement reconciled. Dispute drafts for
-   underpayments. Done.
-4. **Pipeline on Postgres.** Persisted runs, stages as idempotent jobs, review queue and audit log.
-5. **Evals in CI and a fault generator.** Replay evals gate every push; a separate generator plants
-   faults the pipeline author does not see.
-6. **Monitoring.** Layout drift, control charts on variance, silent carriers, kill switches. Started:
-   the kill switch and the signals that need no history (section 9).
-7. **Second tenant.** Retailer deductions config plus labels, with no code changes. Done for
-   remittances against trade terms; the one code change was moving the words into tenant config.
-8. **Production adapters** (S3, Slack): implemented against contract tests, not deployed.
-9. **Runbook and decision records.** Done: `docs/runbook.md` and `docs/decisions/`.
+   underpayments.
+4. **Second tenant.** Retailer remittances against trade terms, as config. The one code change was
+   moving the words into tenant config (decision 0006).
+5. **Runbook and decision records.** `docs/runbook.md` and `docs/decisions/`.
+
+### What is left before a production release
+
+The demo has to show the work on one machine with one command. The milestones below make it safe to
+run every month on real money, and none of them changes what a viewer of the demo would see. They
+were left out on purpose; each one is needed before AAI's real statements go through it.
+
+**4. Pipeline on Postgres.**
+
+- _Build:_ migrations for runs, statements, lines, findings, allocations, approvals and review
+  items, each with `tenant_id` and row-level security; the stages as pg-boss jobs keyed by
+  `(run_id, statement_id, stage)`; the review queue in the admin (accept, override, hold, reassign)
+  with an append-only audit log; overrides exported as labeled examples; `docker compose up`.
+- _Why not in the demo:_ files show every result a reviewer needs and run with no setup. A database
+  would add a dependency to the one command and nothing to what is seen.
+- _Why production needs it:_ a month's close has to survive a crash halfway (stages that resume
+  where they stopped), keep every past run for audit, let several people work the queue at once,
+  and keep tenants apart. Every signal that compares months (section 9) reads from these tables.
+- _Done when:_ a run killed mid-way resumes without doubling a payout; two reviewers deciding the
+  same item cannot both win; each decision is in the audit log and the labeled set.
+- _Size:_ about a week.
+
+**5. Fault generator and live evals on a schedule.**
+
+- _Build:_ a second generator, kept apart from the demo generator, that injects faults (renamed
+  headers, split pages, duplicate lines, reversals, rounding, wrong agency codes) into fresh
+  statements; a held-out carrier format used only in CI; a nightly live eval run.
+- _Why not in the demo:_ the planted problems in the demo data and the replayed evals already show
+  that errors are caught and that a change cannot ship below its floors.
+- _Why production needs it:_ the demo's problems were planted by the same author who wrote the
+  checks, so they test what the author thought of. A separate fault corpus and a format never seen
+  during development test what they did not. The nightly run catches a model that changes under an
+  unchanged prompt.
+- _Done when:_ CI fails if a planted fault is not held or flagged; the nightly run posts its scores.
+- _Size:_ one to two days.
+
+**6. Monitoring, the rest.**
+
+- _Build:_ the signals in section 9 that compare against history (exception share and variance
+  control bands per counterparty, line counts against the trailing average, override and
+  escalation rates against the trailing months, silent counterparties by cadence); alerts routed to
+  each signal's owner; switching a carrier off from the admin, audited.
+- _Why not in the demo:_ they need months of stored runs (milestone 4). One demo month has no
+  history to compare against.
+- _Why production needs it:_ this is how a quiet regression is found: a pipeline that keeps running
+  while getting slowly worse. The signals that run today catch only what one month shows.
+- _Done when:_ a synthetic month with a doubled exception share or a missing statement raises the
+  alert to its owner.
+- _Size:_ two to three days, after milestone 4.
+
+**8. Production adapters.**
+
+- _Build:_ statements arriving in S3 (or a mailbox), originals kept with object lock, payout files
+  published to S3 and the accounting import, alerts to Slack, secrets from the cloud secrets
+  manager, and the EZLynx export as the system of record. Each adapter passes the same contract test
+  as its demo version.
+- _Why not in the demo:_ they need AAI's accounts and access, and would make the demo depend on
+  cloud services a reviewer does not have.
+- _Why production needs it:_ files on a laptop are not where statements arrive or where payouts go.
+- _Done when:_ the contract tests pass against both versions, and one real month runs end to end in
+  a staging account.
+- _Size:_ three to five days once access is granted. EZLynx access is the long pole.
+
+### Also needed before production, outside these milestones
+
+- **Logins and roles** for the admin, with single sign-on. It listens on localhost with no logins
+  today, which is right for a demo and wrong for anything shared.
+- **A labeled set from AAI's own statements,** built with its operators from the last few hundred
+  real cases (section 11). Synthetic data proves the mechanism, not the accuracy on their carriers.
+- **A parallel run.** Three months of real statements checked alongside the current process, with
+  every difference explained, before the tool's numbers are used to pay anyone.
+- **A data agreement and a security review** covering policy data and what is sent to the model
+  provider (section 12).
 
 ## 19. Review questions for the architecture reviewer
 
