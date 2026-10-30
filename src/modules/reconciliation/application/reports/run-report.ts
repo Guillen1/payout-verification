@@ -2,8 +2,8 @@ import { payoutsByAgency } from "../../domain/allocation";
 import type { LineResult } from "../../domain/line-result";
 import { formatMoney } from "../../domain/money";
 import type { CarrierOutcome, PeriodResult } from "../services/reconcile-period.service";
-import type { FormatProposal } from "../../../extraction/application/services/format-proposal.service";
 import type { Tenant } from "../../infrastructure/tenant-files";
+import { describeHold } from "../views/period-view";
 import { allocationsOf } from "./payout-files";
 
 /**
@@ -57,50 +57,11 @@ function summaryTable(result: PeriodResult): string {
 
 function notProcessedSection(result: PeriodResult): string {
   const problems = result.carriers.flatMap(outcome => {
-    const name = `**${outcome.carrier.name}**`;
-    switch (outcome.status) {
-      case "processed": {
-        if (outcome.reconciliation.status === "reconciled") return [];
-        const { extractedTotalCents, statedTotalCents } = outcome.reconciliation.tieOut;
-        return [
-          `- ${name}: the lines add up to ${formatMoney(extractedTotalCents)} but the statement total is ` +
-            `${formatMoney(statedTotalCents)}. Nothing was allocated.`
-        ];
-      }
-      case "statement_missing":
-        return [`- ${name}: no statement received at \`${outcome.file}\`.`];
-      case "format_drift":
-        return [
-          `- ${name}: the statement layout changed, so it was not processed. ` +
-            `Missing columns: ${list(outcome.headerCheck.missing)}. New columns: ${list(outcome.headerCheck.unexpected)}.`,
-          `  - ${describeProposal(outcome.proposal)}`
-        ];
-      case "invalid_lines":
-        return [
-          `- ${name}: ${outcome.problems.length} unreadable value(s), so it was not processed.`,
-          ...outcome.problems.map(problem => `  - ${problem.location}, ${problem.field}: ${problem.message}`)
-        ];
-      case "unreadable":
-        return [`- ${name}: the statement could not be read. ${outcome.reason}`];
-      case "model_unavailable":
-        return [`- ${name}: not processed because the model was unavailable. ${outcome.reason}`];
-    }
+    const hold = describeHold(outcome);
+    if (hold === null) return [];
+    return [`- **${outcome.carrier.name}**: ${hold.reason}`, ...hold.details.map(detail => `  - ${detail}`)];
   });
   return problems.length === 0 ? "" : ["## Statements not processed", "", ...problems].join("\n");
-}
-
-function describeProposal(proposal: FormatProposal): string {
-  switch (proposal.status) {
-    case "verified":
-      return (
-        `A model proposed an updated mapping that reads all ${proposal.lineCount} lines and ties out to the cent. ` +
-        `It is in this run's proposals folder, waiting for review.`
-      );
-    case "unverified":
-      return `A model proposed a mapping, but it failed the check: ${proposal.reason} It is not usable as is.`;
-    case "no_answer":
-      return `No mapping was proposed: ${proposal.reason}`;
-  }
 }
 
 function modelSection(result: PeriodResult): string {
@@ -214,10 +175,6 @@ function describeStatus(outcome: CarrierOutcome): string {
     case "processed":
       return "Processed";
   }
-}
-
-function list(items: readonly string[]): string {
-  return items.length === 0 ? "none" : items.map(item => `"${item}"`).join(", ");
 }
 
 /** A Markdown table row, padded with empty cells up to the column count. */

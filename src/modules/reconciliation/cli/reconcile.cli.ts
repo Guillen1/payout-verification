@@ -1,16 +1,9 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { Command, CommandRunner, Option } from "nest-commander";
 import { costOfLiveCalls } from "../../../libs/model-client/contract/model.models";
-import { renderProposal } from "../../extraction/application/services/format-proposal.service";
-import { renderCommissionDispute } from "../application/reports/dispute-letter";
-import { renderAgencyPayouts, renderAllocationLines } from "../application/reports/payout-files";
-import { renderRunReport } from "../application/reports/run-report";
-import { ReconcilePeriodService, type CarrierOutcome } from "../application/services/reconcile-period.service";
+import { PeriodRunsService } from "../application/services/period-runs.service";
+import type { CarrierOutcome } from "../application/services/reconcile-period.service";
 import { isPeriod } from "../domain/dates";
 import { formatMoney } from "../domain/money";
-import { loadPolicyBook } from "../infrastructure/policy-book-file";
-import { loadTenant } from "../infrastructure/tenant-files";
 
 interface ReconcileOptions {
   tenant: string;
@@ -22,43 +15,23 @@ interface ReconcileOptions {
 /** `reconcile`: closes one period and writes the report, payout files, proposed mappings and dispute drafts. */
 @Command({ name: "reconcile", description: "Reconcile one period of carrier statements" })
 export class ReconcileCli extends CommandRunner {
-  constructor(private readonly reconcilePeriod: ReconcilePeriodService) {
+  constructor(private readonly periodRuns: PeriodRunsService) {
     super();
   }
 
   async run(_arguments: string[], options: ReconcileOptions): Promise<void> {
-    const tenant = await loadTenant(options.tenant);
-    const policies = await loadPolicyBook(join(options.data, "book", "policies.csv"));
-    const result = await this.reconcilePeriod.reconcile({
-      tenant,
-      policies,
-      inboxDirectory: join(options.data, "inbox"),
-      period: options.period
-    });
-
-    const outDirectory = join(options.out, options.period);
-    await mkdir(join(outDirectory, "proposals"), { recursive: true });
-    await mkdir(join(outDirectory, "disputes"), { recursive: true });
-    await writeFile(join(outDirectory, "report.md"), renderRunReport(result, tenant));
-    await writeFile(join(outDirectory, "agency-payouts.csv"), renderAgencyPayouts(result));
-    await writeFile(join(outDirectory, "allocation-lines.csv"), renderAllocationLines(result));
-    await writeFile(join(outDirectory, "result.json"), `${JSON.stringify(result, null, 2)}\n`);
+    const { result, tenant, outDirectory, proposals, disputes } = await this.periodRuns.run(
+      { tenant: options.tenant, data: options.data, out: options.out },
+      options.period
+    );
 
     console.log(`\n${tenant.name}, period ${options.period}\n`);
     for (const outcome of result.carriers) {
       console.log(`  ${outcome.carrier.name.padEnd(26)} ${summarize(outcome)}`);
-      if (outcome.status === "format_drift" && outcome.proposal.status !== "no_answer" && outcome.proposal.format) {
-        const path = join(outDirectory, "proposals", `${outcome.proposal.format.id}.yaml`);
-        const verified = outcome.proposal.status === "verified";
-        await writeFile(path, renderProposal({ ...outcome.proposal, format: outcome.proposal.format }, verified));
-        console.log(`  ${"".padEnd(26)} proposed mapping to review: ${path}`);
-      }
-      const dispute = renderCommissionDispute(outcome, options.period, tenant.name);
-      if (dispute) {
-        const path = join(outDirectory, "disputes", `${outcome.carrier.id}.md`);
-        await writeFile(path, dispute);
-        console.log(`  ${"".padEnd(26)} draft dispute letter: ${path}`);
-      }
+      const proposal = proposals[outcome.carrier.id];
+      if (proposal) console.log(`  ${"".padEnd(26)} proposed mapping to review: ${proposal}`);
+      const dispute = disputes[outcome.carrier.id];
+      if (dispute) console.log(`  ${"".padEnd(26)} draft dispute letter: ${dispute}`);
     }
 
     if (result.modelCalls.length > 0) {

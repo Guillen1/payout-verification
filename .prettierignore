@@ -5,3 +5,4 @@ dist/
 
 # Recorded model answers, written by the code
 recordings/
+web/dist/

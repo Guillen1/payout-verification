@@ -20,6 +20,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm test
+      - name: Build the admin web app
+        run: pnpm --filter web build
       - name: Model evals, replayed from recordings
         run: pnpm eval
         env:

@@ -1,0 +1,50 @@
+/*
+ * Display only. Every amount arrives from the API in integer cents, already computed; the page
+ * formats it and never adds amounts up itself.
+ */
+
+const dollars = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const wholeDollars = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
+export function money(cents: number): string {
+  return dollars.format(cents / 100);
+}
+
+/** For chart axes, where cents are noise. */
+export function moneyShort(cents: number): string {
+  return wholeDollars.format(cents / 100);
+}
+
+/** A signed difference, for variances: "+$12.00", "−$25.49". */
+export function moneyDelta(cents: number): string {
+  if (cents === 0) return money(0);
+  return `${cents > 0 ? "+" : "−"}${money(Math.abs(cents))}`;
+}
+
+export function rate(basisPoints: number): string {
+  return `${(basisPoints / 100).toFixed(2)}%`;
+}
+
+export function percent(fraction: number): string {
+  return `${(fraction * 100).toFixed(fraction === 1 ? 0 : 1)}%`;
+}
+
+/** "2026-09" as "September 2026". */
+export function periodName(period: string): string {
+  const [year, month] = period.split("-").map(Number) as [number, number];
+  return new Date(Date.UTC(year, month - 1, 1)).toLocaleString("en-US", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC"
+  });
+}
+
+export function dateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+}
+
+/** "rate_variance" as "Rate variance". */
+export function label(code: string): string {
+  const words = code.replaceAll("_", " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}

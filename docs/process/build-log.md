@@ -240,3 +240,43 @@ replay mode, a missing retry recording hides a tie-out failure. The statement is
 | Tests                                                 | 139 pass                                  |
 | Both input errors reproduced before and after the fix | Reported correctly after                  |
 | Demo bonus and eval in replay mode                    | Unchanged: $42,546.11 expected; eval pass |
+
+## The admin (2026-10-30)
+
+**Why.** The human asked for something visual for the walkthrough and for reviewers: the results were
+Markdown files and terminal output.
+
+**Built**
+
+- A JSON API in the same Nest app, with controllers in each module: periods (view, run, dispute letter),
+  bonus programs (view, run, dispute letter), approvals (list, approve) and health. The services the
+  commands used were moved into shared services, so the command line and the admin run the same code.
+- View models that reshape results for reading, with names resolved and every total computed on the
+  server. The page formats numbers and never adds them up.
+- Approvals: a changed layout's verified mapping, or a bonus agreement's drafted rules, written into the
+  tenant's config when a person approves, with their name and the time in `approvals.jsonl`. An
+  unverified mapping cannot be approved.
+- The web app in `web/`: overview, statement lines, bonus check with two charts, approvals and health.
+- An end-to-end test of the whole loop through the API: run with a changed layout and unapproved bonus
+  rules, approve both, run again, and both go through with the planted underpayment found.
+
+**Decisions**
+
+- A framework after all. The AI first proposed plain server-rendered HTML to keep the code small; the
+  human pointed out that this is what reviewers see first and it has to look clean. React, Tailwind and
+  shadcn/ui components: a common, well-supported stack a reviewer can read.
+- A single-page app on Vite rather than Next.js: a local tool gains nothing from server rendering.
+- The admin reads the results files the commands write, so nothing new has to be stored before the
+  Postgres milestone. Decisions on held lines wait for that milestone, since they need real storage and
+  an audit trail.
+- Localhost only, no logins: the reviewer types their name. Program and carrier names in the address
+  are checked against config, so a request cannot reach other files.
+
+**Verified**
+
+| Check                                                   | Result                        |
+| ------------------------------------------------------- | ----------------------------- |
+| Typecheck and lint, server and web                      | Pass                          |
+| Server tests, including the approve-and-rerun API flow  | 150 pass                      |
+| Web tests                                               | 5 pass                        |
+| Every page rendered in a headless browser and looked at | Screenshots in `docs/images/` |

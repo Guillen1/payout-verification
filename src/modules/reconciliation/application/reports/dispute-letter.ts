@@ -1,4 +1,5 @@
-import { formatMoney, sumCents, type Cents } from "../../domain/money";
+import { carrierClaims } from "../../domain/carrier-claims";
+import { formatMoney, type Cents } from "../../domain/money";
 import type { CarrierOutcome } from "../services/reconcile-period.service";
 
 export interface DisputeItem {
@@ -50,12 +51,7 @@ export function renderDisputeLetter(letter: {
 /** A draft letter for one carrier's underpaid and missing commissions in a period, or null if there are none. */
 export function renderCommissionDispute(outcome: CarrierOutcome, period: string, networkName: string): string | null {
   if (outcome.status !== "processed" || outcome.reconciliation.status !== "reconciled") return null;
-  const { lines, missing } = outcome.reconciliation;
-
-  const underpaid = lines.filter(
-    result => result.disposition === "dispute" && result.varianceCents !== null && result.varianceCents < 0
-  );
-  const unpaid = missing.filter(entry => entry.expectedCents !== null);
+  const { underpaid, unpaid, owedCents } = carrierClaims(outcome.reconciliation);
   if (underpaid.length === 0 && unpaid.length === 0) return null;
 
   const items: DisputeItem[] = [
@@ -72,10 +68,6 @@ export function renderCommissionDispute(outcome: CarrierOutcome, period: string,
       expected: formatMoney(entry.expectedCents ?? 0)
     }))
   ];
-  const owedCents = sumCents([
-    ...underpaid.map(result => -(result.varianceCents ?? 0)),
-    ...unpaid.map(entry => entry.expectedCents ?? 0)
-  ]);
 
   return renderDisputeLetter({
     to: `${outcome.carrier.name}, agency accounting`,

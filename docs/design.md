@@ -422,13 +422,21 @@ calls never mix tenants in one context, and each tenant has its own model budget
 TypeScript (Node 22) on NestJS, laid out by module without CQRS: modules with plain services, abstract classes as DI tokens, config validated at startup. The command line
 uses nest-commander. Zod validates every boundary (config files, model answers), the Anthropic SDK
 calls Claude with structured outputs, Faker generates the demo data, Vitest with SWC runs the
-tests. Later milestones add Postgres (Kysely or TypeORM) and the review page.
+tests.
+
+The admin is a separate package in the same workspace: React 19 on Vite, Tailwind with shadcn/ui
+components, TanStack Query for data, TanStack Table for statement lines, and Recharts for the two bonus
+charts. Nest serves it and a small JSON API from the same process. A single-page app rather than
+Next.js: it is a local tool with no SEO or server rendering to gain, so a static build served by the
+API is the least to run. The page formats numbers and never computes them: every total arrives from
+the API in cents. Later milestones add Postgres (Kysely or TypeORM).
 
 ## 16. Repo layout
 
 ```
 src/
   main.ts, app.module.ts            the command line: seed, reconcile, bonus, eval
+  server.ts, server.module.ts       the admin: JSON API under /api, and the built web app
   libs/model-client/                contract/ (abstract client), implementation/ (Claude + recordings),
                                     setup/ (validated config), testing/ (stand-in)
   modules/
@@ -437,8 +445,10 @@ src/
     extraction/                     domain/ (formats, CSV reading), application/ (PDF reader, proposals)
     bonus/                          domain/ (rules, expected bonus, statement check, split),
                                     application/ (agreement reader, verification, report), cli/, tests/
+    approvals/                      model proposals waiting for a person; approving writes config
     demo/                           synthetic data and its answer key, seed command
-    evals/                          eval command and layout-change cases
+    evals/                          eval command, layout-change cases, health for the admin
+web/                                the admin page: pages/, components/, api/ (typed client)
 tenants/                            config per tenant, including bonus programs and approved rules
 recordings/                         recorded model answers
 docs/                               design.md, process/
@@ -451,9 +461,10 @@ pnpm demo:seed          # policy book + three carrier statements (two CSV, one P
 pnpm demo:reconcile     # full period; PDFs read through recorded model answers; outputs in out/2026-09/
 pnpm demo:bonus         # one bonus program year; outputs in out/bonus/northwind-2025/
 pnpm eval               # model evals against the answer key, with floors
+pnpm admin              # the local admin at http://localhost:3000
 ```
 
-Later milestones add `docker compose up` for Postgres and the review page.
+Later milestones add `docker compose up` for Postgres.
 
 ## 18. Milestones and cut line
 

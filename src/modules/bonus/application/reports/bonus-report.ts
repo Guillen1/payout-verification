@@ -4,7 +4,7 @@ import { formatMoney, formatMoneyPlain, formatRate } from "../../../reconciliati
 import type { BonusFinding, BonusCheck } from "../../domain/check-bonus";
 import type { BonusResult } from "../services/bonus-verification.service";
 
-interface Names {
+export interface Names {
   network: string;
   carrier: string;
   agency: (agencyId: string) => string;
@@ -130,7 +130,7 @@ function verdict(check: BonusCheck): string {
   }
 }
 
-function describeFinding(finding: BonusFinding, names: Names): string {
+export function describeFinding(finding: BonusFinding, names: Names): string {
   switch (finding.kind) {
     case "premium_difference":
       return `${names.agency(finding.agencyId)}: the statement counts ${formatMoney(finding.statementCents)} of eligible premium; the network's records show ${formatMoney(finding.networkCents)} (clause ${finding.clause}).`;

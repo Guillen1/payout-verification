@@ -16,6 +16,7 @@ import { PolicyIndex } from "../../reconciliation/domain/policy-index";
 import { reconcileStatement } from "../../reconciliation/domain/reconcile-statement";
 import { loadTenant, type Tenant } from "../../reconciliation/infrastructure/tenant-files";
 import { DRIFT_CASES } from "../drift-cases";
+import { MEASURE_LABELS, type EvalSummary } from "../eval-summary";
 
 const PERIOD = "2026-09";
 const SEEDS = [42, 7, 2026];
@@ -90,8 +91,25 @@ export class EvalCli extends CommandRunner {
       passed ? "**Result: pass.**" : "**Result: FAIL.**"
     ].join("\n");
 
+    const summary: EvalSummary = {
+      ranAt: new Date().toISOString(),
+      passed,
+      scores: (Object.keys(FLOORS) as Measure[]).map(measure => ({
+        measure,
+        label: MEASURE_LABELS[measure] ?? measure,
+        score: scores[measure],
+        floor: FLOORS[measure]
+      })),
+      escalations: reading.escalations,
+      statements: SEEDS.length,
+      calls: calls.length,
+      replayed: calls.filter(call => call.source === "recording").length,
+      costUsd: costOfLiveCalls(calls)
+    };
+
     await mkdir(join("out", "evals"), { recursive: true });
     await writeFile(join("out", "evals", "report.md"), `${report}\n`);
+    await writeFile(join("out", "evals", "report.json"), `${JSON.stringify(summary, null, 2)}\n`);
     console.log(report);
     process.exitCode = passed ? 0 : 1;
   }

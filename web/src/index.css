@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+/*
+ * Neutral surfaces with one accent, so the colors that remain mean something: the disposition of a
+ * line (clear, dispute, review) and the series in a chart. Chart colors follow a palette validated
+ * for color-vision deficiency; status colors always come with a label.
+ */
+:root {
+  --background: #fafaf9;
+  --foreground: #1c1917;
+  --card: #ffffff;
+  --muted: #f5f5f4;
+  --muted-foreground: #78716c;
+  --border: #e7e5e4;
+  --primary: #1c1917;
+  --primary-foreground: #fafaf9;
+  --accent: #f5f5f4;
+  --ring: #a8a29e;
+
+  --status-good: #0ca30c;
+  --status-good-soft: #e7f6e7;
+  --status-good-ink: #0f5f0f;
+  --status-warning: #fab219;
+  --status-warning-soft: #fef4dd;
+  --status-warning-ink: #7a5200;
+  --status-critical: #d03b3b;
+  --status-critical-soft: #fbe9e9;
+  --status-critical-ink: #8f1f1f;
+
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --chart-grid: #e7e5e4;
+}
+
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-ring: var(--ring);
+  --color-good: var(--status-good);
+  --color-good-soft: var(--status-good-soft);
+  --color-good-ink: var(--status-good-ink);
+  --color-warning: var(--status-warning);
+  --color-warning-soft: var(--status-warning-soft);
+  --color-warning-ink: var(--status-warning-ink);
+  --color-critical: var(--status-critical);
+  --color-critical-soft: var(--status-critical-soft);
+  --color-critical-ink: var(--status-critical-ink);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  border-color: var(--border);
+}
+
+/* Money lines up in columns. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

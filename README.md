@@ -38,6 +38,29 @@ out, while the other carriers still close. Claude proposes an updated mapping, t
 proposal reads every line and ties out to the cent, and it waits in `out/2026-09/proposals/` for a
 person to approve it.
 
+## The admin
+
+```sh
+pnpm admin            # builds the web app and serves it with the API at http://localhost:3000
+```
+
+A local admin over the same results: the period at a glance, every line of every statement, the bonus
+check, the approvals, and the health signals. It runs periods and bonus checks, and approving a proposal
+there writes it into the tenant's config with the reviewer's name in `approvals.jsonl`. The page only
+displays; every amount comes from the API already computed. It listens on localhost only and has no
+logins, so it is for one person on their own machine.
+
+![The period overview](docs/images/admin-commissions.png)
+
+| Bonus check                                                   | Approvals                                     |
+| ------------------------------------------------------------- | --------------------------------------------- |
+| ![The bonus check](docs/images/admin-bonus.png)               | ![Approvals](docs/images/admin-approvals.png) |
+| **Statement lines**                                           | **Health**                                    |
+| ![A carrier's statement lines](docs/images/admin-carrier.png) | ![Health](docs/images/admin-health.png)       |
+
+To work on it, run `pnpm admin:api` (the API on port 3000, restarting on change) and `pnpm --filter web dev`
+(the page on Vite, forwarding `/api`).
+
 ## What it finds
 
 The seeded period plants one of each problem a real close runs into:
@@ -146,20 +169,23 @@ were settled, the human decisions, and a log of each milestone with how it was v
 A NestJS command-line app laid out by module: each one has `domain/` (plain functions, no framework),
 `application/` (services), `infrastructure/` (files and external systems), `cli/` and `tests/`. No CQRS.
 
-| Path                                         | What is there                                                                                              |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `src/modules/reconciliation/domain/`         | The money rules as pure functions: dated rates, matching, classification, allocation, tie-out. Start here. |
-| `src/modules/reconciliation/application/`    | Closing a period across carriers, and the report and payout files.                                         |
-| `src/modules/reconciliation/infrastructure/` | Reading the tenant's config and policy book from files.                                                    |
-| `src/modules/bonus/`                         | Profit-sharing bonuses: agreement to rules, expected bonus, statement check, split and dispute letter.     |
-| `src/modules/extraction/`                    | Reading CSV and PDF statements into one shape, and proposing mappings for changed layouts.                 |
-| `src/libs/model-client/`                     | The one door to the model: the Claude client with recordings, and a stand-in for tests.                    |
-| `src/modules/demo/`                          | The seeded synthetic data generator (Faker), including the PDF statement and its answer key.               |
-| `src/modules/evals/`                         | Measures the real model against the answer key, with floors.                                               |
-| `tenants/agency-network/`                    | The demo tenant: carriers, agencies, rates, splits, carrier formats and bonus programs.                    |
-| `recordings/`                                | Recorded model answers, so the demo and CI run without a key.                                              |
-| `docs/design.md`                             | The design: goals, architecture, controls, monitoring and roadmap.                                         |
-| `docs/process/`                              | How this was researched, decided and built with AI, including the research.                                |
+| Path                                          | What is there                                                                                              |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `src/modules/reconciliation/domain/`          | The money rules as pure functions: dated rates, matching, classification, allocation, tie-out. Start here. |
+| `src/modules/reconciliation/application/`     | Closing a period across carriers, and the report and payout files.                                         |
+| `src/modules/reconciliation/infrastructure/`  | Reading the tenant's config and policy book from files.                                                    |
+| `src/modules/bonus/`                          | Profit-sharing bonuses: agreement to rules, expected bonus, statement check, split and dispute letter.     |
+| `src/modules/extraction/`                     | Reading CSV and PDF statements into one shape, and proposing mappings for changed layouts.                 |
+| `src/libs/model-client/`                      | The one door to the model: the Claude client with recordings, and a stand-in for tests.                    |
+| `src/modules/demo/`                           | The seeded synthetic data generator (Faker), including the PDF statement and its answer key.               |
+| `src/modules/evals/`                          | Measures the real model against the answer key, with floors.                                               |
+| `tenants/agency-network/`                     | The demo tenant: carriers, agencies, rates, splits, carrier formats and bonus programs.                    |
+| `recordings/`                                 | Recorded model answers, so the demo and CI run without a key.                                              |
+| `docs/design.md`                              | The design: goals, architecture, controls, monitoring and roadmap.                                         |
+| `web/`                                        | The admin: React, Vite, Tailwind with shadcn/ui components, TanStack Query and Table, Recharts.            |
+| `src/server.ts`, `src/modules/*/controllers/` | The admin's API: periods, bonus programs, approvals, health.                                               |
+| `src/modules/approvals/`                      | Model proposals waiting for a person, and applying one when approved.                                      |
+| `docs/process/`                               | How this was researched, decided and built with AI, including the research.                                |
 
 ```sh
 pnpm check   # typecheck, lint, format check and tests

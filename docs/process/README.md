@@ -163,6 +163,7 @@ The build follows the milestones in the design doc. Each milestone is logged in
 | A config-loading test asserted the values typed in the config files, not the loader's behavior                              | Code review before submission; replaced with behavior tests                            |
 | The bonus answer key reused the domain's rounding function it was meant to check                                            | Code review; the generator now uses its own math                                       |
 | A malformed CSV was reported as a model outage                                                                              | Code review; reproduced on a copy of the data, then fixed and tested                   |
+| Proposed a plain-HTML admin with no framework, optimizing for less code over how it looks                                   | The human pointed out reviewers see it first; rebuilt on React, Tailwind and shadcn/ui |
 
 ## Rules followed throughout
 
