@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Command, CommandRunner, Option } from "nest-commander";
+import { costOfLiveCalls } from "../../../libs/model-client/contract/model.models";
 import { renderProposal } from "../../extraction/application/services/format-proposal.service";
 import { renderCommissionDispute } from "../application/reports/dispute-letter";
 import { renderAgencyPayouts, renderAllocationLines } from "../application/reports/payout-files";
@@ -60,9 +61,13 @@ export class ReconcileCli extends CommandRunner {
       }
     }
 
-    const cost = result.modelCalls.reduce((total, call) => total + (call.estimatedCostUsd ?? 0), 0);
-    if (result.modelCalls.length > 0)
-      console.log(`\nModel calls: ${result.modelCalls.length}, estimated cost $${cost.toFixed(4)}`);
+    if (result.modelCalls.length > 0) {
+      const replayed = result.modelCalls.filter(call => call.source === "recording").length;
+      console.log(
+        `\nModel calls: ${result.modelCalls.length} (${replayed} replayed), ` +
+          `estimated cost $${costOfLiveCalls(result.modelCalls).toFixed(4)}`
+      );
+    }
     console.log(`\nReport and payout files in ${outDirectory}/\n`);
   }
 

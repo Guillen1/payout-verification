@@ -137,7 +137,7 @@ function describeFinding(finding: BonusFinding, names: Names): string {
     case "loss_ratio_differs":
       return `The statement gives a loss ratio of ${formatRate(finding.statedBps)}, but its own figures give ${formatRate(finding.computedBps)} (clause ${finding.clause}).`;
     case "rate_differs":
-      return `The statement applies a bonus rate of ${formatRate(finding.statedBps)}; the agreement sets ${formatRate(finding.agreementBps)} for this loss ratio (clause ${finding.clause}).`;
+      return `The statement applies a bonus rate of ${formatRate(finding.statedBps)}; the agreement provides ${formatRate(finding.agreementBps)} (clause ${finding.clause}).`;
   }
 }
 
@@ -160,7 +160,7 @@ function disputeItem(finding: BonusFinding, names: Names) {
     case "rate_differs":
       return {
         reference: `Clause ${finding.clause}`,
-        issue: "Bonus rate for the loss ratio",
+        issue: "Bonus rate",
         stated: formatRate(finding.statedBps),
         expected: formatRate(finding.agreementBps)
       };

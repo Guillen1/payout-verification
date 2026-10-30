@@ -226,9 +226,11 @@ before committing; minor ones and a question were left for the human.
 - A bad amount in the policy book or production report failed without its file or row. Both now
   report it like any other invalid value.
 
-**Left for the human** (minor): a dead branch in the run report, replayed answers counted in the run's
-cost, a rate finding raised when the network does not qualify, and a shadowed variable name. One
-question: in replay mode, a missing retry recording hides a tie-out failure.
+**Minor findings**, left for the human and then accepted: a dead branch in the run report, replayed
+answers counted in the run's cost (a replay now reports $0 spent), a rate finding raised when the
+network does not meet the minimum premium (the agreement then provides 0%, citing the minimum's
+clause), and a shadowed variable name. All four fixed; 141 tests pass. One question stays open: in
+replay mode, a missing retry recording hides a tie-out failure. The statement is held either way.
 
 **Verified**
 

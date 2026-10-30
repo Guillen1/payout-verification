@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import type { ModelRequest, ModelResult } from "../../contract/model.models";
+import { costOfLiveCalls, type ModelRequest, type ModelResult } from "../../contract/model.models";
 import { readRecording, recordingPath, saveRecording } from "../../implementation/recordings";
 
 const request: ModelRequest<{ total: string }> = {
@@ -62,5 +62,12 @@ describe("recordings", () => {
 
     const stricter = { ...request, schema: z.object({ total: z.string(), currency: z.string() }) };
     expect(await readRecording(path, stricter)).toMatchObject({ status: "invalid_output" });
+  });
+});
+
+describe("costOfLiveCalls", () => {
+  it("counts only answers requested in this run", () => {
+    const call = { ...answered.usage, estimatedCostUsd: 0.25 };
+    expect(costOfLiveCalls([call, { ...call, source: "recording" }, { ...call, estimatedCostUsd: null }])).toBe(0.25);
   });
 });

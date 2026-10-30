@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Command, CommandRunner } from "nest-commander";
-import type { ModelUsage } from "../../../libs/model-client/contract/model.models";
+import { costOfLiveCalls, type ModelUsage } from "../../../libs/model-client/contract/model.models";
 import { BonusTermsService } from "../../bonus/application/services/bonus-terms.service";
 import type { BonusRules } from "../../bonus/domain/bonus-rules";
 import { loadBonusProgram } from "../../bonus/infrastructure/bonus-files";
@@ -53,12 +53,11 @@ export class EvalCli extends CommandRunner {
       bonusRulesCorrect: agreements.score
     };
     const passed = (Object.keys(FLOORS) as Measure[]).every(measure => scores[measure] >= FLOORS[measure]);
-    const cost = calls.reduce((total, call) => total + (call.estimatedCostUsd ?? 0), 0);
 
     const report = [
       `# Model evals, ${new Date().toISOString().slice(0, 10)}`,
       "",
-      `Model calls: ${calls.length} (${[...new Set(calls.map(call => call.source))].join(", ")}). Estimated cost: $${cost.toFixed(4)}.`,
+      `Model calls: ${calls.length}, ${calls.filter(call => call.source === "recording").length} replayed from recordings. Estimated cost of this run: $${costOfLiveCalls(calls).toFixed(4)}.`,
       "",
       "## Reading PDF statements",
       "",

@@ -89,8 +89,7 @@ function notProcessedSection(result: PeriodResult): string {
   return problems.length === 0 ? "" : ["## Statements not processed", "", ...problems].join("\n");
 }
 
-function describeProposal(proposal: FormatProposal | null): string {
-  if (proposal === null) return "No mapping was proposed because no model is configured.";
+function describeProposal(proposal: FormatProposal): string {
   switch (proposal.status) {
     case "verified":
       return (

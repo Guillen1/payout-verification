@@ -94,14 +94,14 @@ export function readBonusStatement(content: string, program: BonusProgram): Bonu
     });
   });
 
-  const stated = (label: string, parse: (text: string) => number): number => {
+  const stated = (label: string, read: (text: string) => number): number => {
     const text = summary.get(label);
     if (text === undefined) {
       problems.push(`The "${label}" row is missing`);
       return 0;
     }
     try {
-      return parse(text);
+      return read(text);
     } catch (error) {
       problems.push(`${label}: ${(error as Error).message}`);
       return 0;

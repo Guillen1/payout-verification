@@ -70,13 +70,14 @@ export function checkBonus(input: {
     });
   }
 
-  const agreementBps = bonusRate(rules, computedBps);
+  // Below the minimum premium the agreement pays nothing, whatever the loss ratio.
+  const agreementBps = expected.qualifies ? bonusRate(rules, computedBps) : 0;
   if (statement.statedRateBps !== agreementBps) {
     findings.push({
       kind: "rate_differs",
       statedBps: statement.statedRateBps,
       agreementBps,
-      clause: rules.lossRatioBands.clause
+      clause: expected.qualifies ? rules.lossRatioBands.clause : rules.minimumPremium.clause
     });
   }
 

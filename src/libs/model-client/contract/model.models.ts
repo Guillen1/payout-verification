@@ -26,6 +26,11 @@ export interface ModelUsage {
   estimatedCostUsd: number | null;
 }
 
+/** What a run actually spent: replayed answers cost nothing, whatever they cost when recorded. */
+export function costOfLiveCalls(calls: readonly ModelUsage[]): number {
+  return calls.filter(call => call.source === "live").reduce((total, call) => total + (call.estimatedCostUsd ?? 0), 0);
+}
+
 export type ModelResult<T> =
   | { status: "answered"; output: T; usage: ModelUsage }
   | { status: "declined"; reason: string; usage: ModelUsage }

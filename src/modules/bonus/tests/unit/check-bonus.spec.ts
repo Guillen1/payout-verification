@@ -85,6 +85,20 @@ describe("checkBonus", () => {
     ]);
   });
 
+  it("expects no rate below the minimum premium, citing the minimum", () => {
+    const belowMinimum = rules({ minimumPremium: { cents: 80_000_000, clause: "4.1" } });
+    const statedZero = statement({ statedRateBps: 0, paidCents: 0 });
+    expect(checkBonus({ rules: belowMinimum, production, statement: statedZero, toleranceCents: 100 })).toMatchObject({
+      disposition: "clear",
+      findings: []
+    });
+
+    const statedBand = statement({ statedRateBps: 300, paidCents: 0 });
+    expect(
+      checkBonus({ rules: belowMinimum, production, statement: statedBand, toleranceCents: 100 }).findings
+    ).toEqual([{ kind: "rate_differs", statedBps: 300, agreementBps: 0, clause: "4.1" }]);
+  });
+
   it("sends an overpayment to review rather than accepting it", () => {
     const check = checkBonus({
       rules: rules(),
