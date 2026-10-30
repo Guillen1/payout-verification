@@ -1,7 +1,10 @@
 node_modules/
 data/
 out/
+# Secrets: every env file stays local. Only the template is committed.
 .env
+.env.*
+!.env.example
 .DS_Store
 coverage/
 dist/
