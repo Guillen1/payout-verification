@@ -220,6 +220,8 @@ A NestJS command-line app laid out by module: each one has `domain/` (plain func
 | `tenants/brand-group/`                        | The second tenant: a beauty brand group checking retailer remittances, with config only.                   |
 | `recordings/`                                 | Recorded model answers, so the demo and CI run without a key.                                              |
 | `docs/design.md`                              | The design: goals, architecture, controls, monitoring and roadmap.                                         |
+| `docs/runbook.md`                             | The monthly close, and what to do when something is held or flagged.                                       |
+| `docs/decisions/`                             | Short records of the decisions that shape the code.                                                        |
 | `web/`                                        | The admin: React, Vite, Tailwind with shadcn/ui components, TanStack Query.                                |
 | `src/server.ts`, `src/modules/*/controllers/` | The admin's API: periods, bonus programs, approvals, health.                                               |
 | `src/modules/approvals/`                      | Model proposals waiting for a person, and applying one when approved.                                      |
@@ -244,4 +246,4 @@ See `docs/design.md` section 18 for detail.
       person, retried readings). Still to do: history, control charts and alerts.
 - [x] **7. A second tenant.** Retailer remittances for a beauty brand group, on the same engine.
 - [ ] **8. Production adapters.**
-- [ ] **9. Runbook and decision records.**
+- [x] **9. Runbook and decision records.** `docs/runbook.md` and `docs/decisions/`.

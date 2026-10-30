@@ -1,6 +1,6 @@
 # Payout Verification for Agency Networks: Design Doc
 
-Status: Draft v0.3, 2026-10-30. Milestones 1, 2, 3 and 7 implemented, 6 started, with a local admin; see the README for what runs today. Author: Jose Guillen.
+Status: Draft v0.3, 2026-10-30. Milestones 1, 2, 3, 7 and 9 implemented, 6 started, with a local admin; see the README for what runs today. Author: Jose Guillen.
 Reviewers: AlphaX engineering (architecture review).
 
 ---
@@ -508,7 +508,7 @@ first so that a short run still shows the model doing the reading the work depen
 7. **Second tenant.** Retailer deductions config plus labels, with no code changes. Done for
    remittances against trade terms; the one code change was moving the words into tenant config.
 8. **Production adapters** (S3, Slack): implemented against contract tests, not deployed.
-9. **Runbook and decision records.**
+9. **Runbook and decision records.** Done: `docs/runbook.md` and `docs/decisions/`.
 
 ## 19. Review questions for the architecture reviewer
 

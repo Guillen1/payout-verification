@@ -379,3 +379,19 @@ tables, tabs and the libraries behind them (Recharts, TanStack Table, Radix Tabs
 | A paused carrier is not read and the others close     | End-to-end test passes       |
 | A changed layout flagged in the admin                 | Screenshot in `docs/images/` |
 | Typecheck, lint, format, server and web tests         | Pass                         |
+
+## Milestone 9: Runbook and decision records (2026-10-30)
+
+**Built**
+
+- `docs/runbook.md`: the monthly close step by step, and what to do for each kind of hold, each label
+  on a line that needs a person, each flag on the AI accuracy page, a bonus check, a model or prompt
+  change, and a new carrier or business.
+- `docs/decisions/`: seven short records of the decisions that shape the code, each with what was
+  considered and why.
+
+**AI and human**
+
+- The AI checked each runbook step against what the code does. One claim was wrong in the first draft
+  (that a silent carrier's policies show up as never paid; they are not checked until its statement
+  arrives) and was corrected before committing.
