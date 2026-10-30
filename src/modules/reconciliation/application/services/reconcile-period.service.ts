@@ -22,6 +22,7 @@ import type { CarrierConfig, Tenant } from "../../infrastructure/tenant-files";
 type ReadOutcome =
   | { status: "extracted"; statement: Statement }
   | { status: "statement_missing" }
+  | { status: "paused"; reason: string }
   | { status: "format_drift"; headerCheck: HeaderCheck; proposal: FormatProposal }
   | { status: "invalid_lines"; problems: LineProblem[] }
   | { status: "unreadable"; reason: string }
@@ -42,7 +43,8 @@ export interface PeriodResult {
 
 /**
  * Reconciles every configured carrier for one period. Each carrier stands alone: a missing,
- * changed or unreadable statement from one carrier never stops the others from closing.
+ * changed or unreadable statement from one carrier never stops the others from closing. A carrier
+ * a person has paused is not read at all, so nothing from it is paid until it is turned back on.
  *
  * Statements are read from <inboxDirectory>/<period>/<carrier id>.<csv|pdf>. The model is used
  * only to read PDFs and to propose a mapping when a CSV layout changes.
@@ -74,7 +76,10 @@ export class ReconcilePeriodService {
 
     for (const carrier of tenant.carriers) {
       const file = join(input.inboxDirectory, period, `${carrier.id}.${fileExtension(carrier.format)}`);
-      const outcome = await this.readStatement(carrier, file, period, tenant.vocabulary, modelCalls);
+      const outcome: ReadOutcome =
+        carrier.paused === null
+          ? await this.readStatement(carrier, file, period, tenant.vocabulary, modelCalls)
+          : { status: "paused", reason: carrier.paused };
 
       carriers.push(
         outcome.status === "extracted"

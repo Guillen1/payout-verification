@@ -29,6 +29,7 @@ word for it.**
 | 2026-10-29 | Build, milestone 3                            | Bonus agreements read into rules, expected bonus by code, dispute letters    |
 | 2026-10-30 | Admin                                         | A local admin over the results, made minimal for stakeholders                |
 | 2026-10-30 | Build, milestone 7                            | A second business, a brand group checking retailer remittances, same engine  |
+| 2026-10-30 | Build, milestone 6 (started)                  | A kill switch per carrier and each period's signals in the admin             |
 
 ## Phase 1: Understand the assignment and scan the portfolio
 

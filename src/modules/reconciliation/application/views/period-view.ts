@@ -41,6 +41,8 @@ export interface CarrierView {
   name: string;
   fileKind: "csv" | "pdf";
   state: "processed" | "held" | "not_received";
+  /** What happened to the statement, for monitoring: "processed", "format_drift", "paused" and so on. */
+  outcome: CarrierOutcome["status"];
   /** Why the statement was not processed, in one sentence, with any detail below it. */
   hold: Hold | null;
   totals: StatementTotals | null;
@@ -91,6 +93,7 @@ function toCarrierView(outcome: CarrierOutcome, agencyName: (agencyId: string) =
     id: outcome.carrier.id,
     name: outcome.carrier.name,
     fileKind: outcome.carrier.format.kind,
+    outcome: outcome.status,
     hold: describeHold(outcome),
     totals: null,
     counts: { clear: 0, dispute: 0, review: 0, missing: 0 },
@@ -150,6 +153,11 @@ export function describeHold(outcome: CarrierOutcome): Hold | null {
     }
     case "statement_missing":
       return { reason: "No statement received.", details: [`Expected at ${outcome.file}.`] };
+    case "paused":
+      return {
+        reason: `Paused by a person: ${outcome.reason}`,
+        details: ["Nothing is read or paid until it is turned back on in the tenant's config."]
+      };
     case "format_drift":
       return {
         reason: "The statement layout changed, so it was not processed.",

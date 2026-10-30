@@ -78,6 +78,8 @@ function summarize(outcome: CarrierOutcome): string {
   switch (outcome.status) {
     case "statement_missing":
       return "no statement received";
+    case "paused":
+      return `PAUSED, ${outcome.reason}`;
     case "format_drift":
       return `HELD, layout changed (missing ${outcome.headerCheck.missing.join(", ") || "none"})`;
     case "invalid_lines":

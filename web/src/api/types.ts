@@ -58,6 +58,7 @@ export interface CarrierView {
   name: string;
   fileKind: "csv" | "pdf";
   state: "processed" | "held" | "not_received";
+  outcome: string;
   hold: Hold | null;
   totals: StatementTotals | null;
   counts: { clear: number; dispute: number; review: number; missing: number };
@@ -160,10 +161,17 @@ export interface EvalSummary {
   costUsd: number;
 }
 
+export interface Signal {
+  label: string;
+  value: string;
+  status: "ok" | "alert";
+}
+
 export interface HealthView {
   evals: EvalSummary | null;
   latestPeriod: string | null;
   modelUse: { task: string; model: string; calls: number; replayed: number; costPerCallUsd: number }[];
+  signals: Signal[];
 }
 
 export type Target = { kind: "carrier"; period: string; carrierId: string } | { kind: "bonus"; programId: string };

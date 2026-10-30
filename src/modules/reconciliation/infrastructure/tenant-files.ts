@@ -17,6 +17,8 @@ export interface CarrierConfig {
   id: string;
   name: string;
   format: SourceFormat;
+  /** The kill switch: why a person turned this carrier off, or null while it runs. */
+  paused: string | null;
 }
 
 /** Everything that describes one tenant: who they work with and the rules money follows. */
@@ -36,7 +38,16 @@ const TenantFileSchema = z.object({
   name: z.string().min(1),
   lineToleranceCents: z.number().int().nonnegative(),
   vocabulary: VocabularySchema.default(VocabularySchema.parse({})),
-  carriers: z.array(z.object({ id: z.string().min(1), name: z.string().min(1), format: z.string().min(1) })).min(1)
+  carriers: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        name: z.string().min(1),
+        format: z.string().min(1),
+        paused: z.string().min(1).optional()
+      })
+    )
+    .min(1)
 });
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD");
@@ -101,7 +112,8 @@ export async function loadTenant(directory: string): Promise<Tenant> {
     settings.carriers.map(async carrier => ({
       id: carrier.id,
       name: carrier.name,
-      format: await loadFormat(join(directory, "formats", `${carrier.format}.yaml`), carrier.id)
+      format: await loadFormat(join(directory, "formats", `${carrier.format}.yaml`), carrier.id),
+      paused: carrier.paused ?? null
     }))
   );
 

@@ -1,6 +1,6 @@
 # Payout Verification for Agency Networks: Design Doc
 
-Status: Draft v0.3, 2026-10-30. Milestones 1, 2, 3 and 7 implemented, with a local admin; see the README for what runs today. Author: Jose Guillen.
+Status: Draft v0.3, 2026-10-30. Milestones 1, 2, 3 and 7 implemented, 6 started, with a local admin; see the README for what runs today. Author: Jose Guillen.
 Reviewers: AlphaX engineering (architecture review).
 
 ---
@@ -327,6 +327,14 @@ There are two different failures to detect:
 statements are ingested and stored but not processed, and the run report lists them. Flipping a
 switch is audited.
 
+**What runs today (a slice of milestone 6).** A carrier can be switched off with `paused: <reason>` in
+`tenant.yaml`: its statement is not read, nothing from it is paid, and the admin shows who paused it
+and why. The admin's AI accuracy page lists the latest period's signals from the table above that
+need no history: statements that do not add up, layouts that changed, carriers that sent nothing or
+were switched off, the share of lines needing a person (against a fixed 15% limit until there is
+history for a control band), and readings retried on the stronger model. The rest need runs stored
+over time, which is milestone 4.
+
 Metrics live in Postgres, so the history, report and demo dashboard come from one store. They are
 also exposed in Prometheus format for prod scraping.
 
@@ -495,7 +503,8 @@ first so that a short run still shows the model doing the reading the work depen
 4. **Pipeline on Postgres.** Persisted runs, stages as idempotent jobs, review queue and audit log.
 5. **Evals in CI and a fault generator.** Replay evals gate every push; a separate generator plants
    faults the pipeline author does not see.
-6. **Monitoring.** Layout drift, control charts on variance, silent carriers, kill switches.
+6. **Monitoring.** Layout drift, control charts on variance, silent carriers, kill switches. Started:
+   the kill switch and the signals that need no history (section 9).
 7. **Second tenant.** Retailer deductions config plus labels, with no code changes. Done for
    remittances against trade terms; the one code change was moving the words into tenant config.
 8. **Production adapters** (S3, Slack): implemented against contract tests, not deployed.

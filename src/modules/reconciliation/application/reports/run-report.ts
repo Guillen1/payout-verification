@@ -174,6 +174,8 @@ function describeStatus(outcome: CarrierOutcome): string {
   switch (outcome.status) {
     case "statement_missing":
       return "No statement";
+    case "paused":
+      return "Paused by a person";
     case "format_drift":
       return "Held: layout changed";
     case "invalid_lines":

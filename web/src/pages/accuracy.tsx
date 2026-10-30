@@ -1,8 +1,9 @@
+import { CircleAlert, CircleCheck } from "lucide-react";
 import { useHealth } from "@/api/client";
-import type { EvalSummary } from "@/api/types";
+import type { EvalSummary, Signal } from "@/api/types";
 import { ErrorState, Loading } from "@/components/states";
 import { Card } from "@/components/ui/card";
-import { percent } from "@/lib/format";
+import { percent, periodName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /** Whether the AI's reading can still be trusted. */
@@ -32,6 +33,9 @@ export function AccuracyPage() {
       </section>
       <Scores evals={evals} />
       <p className="text-sm text-muted-foreground">{facts.join("   ·   ")}</p>
+      {health.latestPeriod && health.signals.length > 0 && (
+        <Signals period={health.latestPeriod} signals={health.signals} />
+      )}
     </div>
   );
 }
@@ -54,5 +58,29 @@ function Scores({ evals }: { evals: EvalSummary }) {
         </div>
       ))}
     </Card>
+  );
+}
+
+/** What would show the checks stopped working or quietly got worse, for the latest period. */
+function Signals({ period, signals }: { period: string; signals: Signal[] }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <h2 className="text-sm text-muted-foreground">Watched every month · {periodName(period)}</h2>
+      <Card className="divide-y">
+        {signals.map(signal => (
+          <div key={signal.label} className="flex items-center gap-3 px-6 py-3 text-sm">
+            {signal.status === "ok" ? (
+              <CircleCheck className="size-4 shrink-0 text-good-ink" aria-label="Normal" />
+            ) : (
+              <CircleAlert className="size-4 shrink-0 text-warning-ink" aria-label="Needs a look" />
+            )}
+            <span className="flex-1">{signal.label}</span>
+            <span className={cn("tabular", signal.status === "alert" && "font-medium text-warning-ink")}>
+              {signal.value}
+            </span>
+          </div>
+        ))}
+      </Card>
+    </section>
   );
 }

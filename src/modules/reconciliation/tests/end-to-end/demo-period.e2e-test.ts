@@ -153,6 +153,23 @@ describe("when something goes wrong with one carrier, the others still close", (
     });
   });
 
+  it("does not read a carrier a person paused, and closes the others", async () => {
+    const paused = {
+      ...tenant,
+      carriers: tenant.carriers.map(carrier =>
+        carrier.id === "harbor-pine" ? { ...carrier, paused: "Disputed statements under review" } : carrier
+      )
+    };
+    const model = answerKeyModel(demo.labels);
+    const result = await runPeriod(demo, paused, model);
+    const status = statusOf(result);
+
+    expect(status["harbor-pine"]).toMatchObject({ status: "paused", reason: "Disputed statements under review" });
+    expect(status.northwind?.status).toBe("processed");
+    expect(status.bluestem?.status).toBe("processed");
+    expect(result.modelCalls).toEqual([]);
+  });
+
   it("reports a carrier that sent nothing", async () => {
     const onlyTwo = { ...demo, statements: demo.statements.filter(s => s.carrierId !== "bluestem") };
     const status = statusOf(await runPeriod(onlyTwo, tenant, answerKeyModel(demo.labels)));

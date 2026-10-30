@@ -58,7 +58,7 @@ held carrier shows the model's proposed fix with an approve button, right where 
 | A held carrier, with the proposed fix                         | The bonus check                                 |
 | ------------------------------------------------------------- | ----------------------------------------------- |
 | ![Approving a changed layout](docs/images/admin-approval.png) | ![The bonus check](docs/images/admin-bonus.png) |
-| **Statement lines that need a person**                        | **AI accuracy**                                 |
+| **Statement lines that need a person**                        | **AI accuracy, and what is watched each month** |
 | ![A carrier's statement lines](docs/images/admin-carrier.png) | ![AI accuracy](docs/images/admin-accuracy.png)  |
 
 To work on it, run `pnpm admin:api` (the API on port 3000, restarting on change) and `pnpm --filter web dev`
@@ -239,7 +239,9 @@ See `docs/design.md` section 18 for detail.
       reconciled, dispute drafts.
 - [ ] **4. Pipeline on Postgres.** Persisted runs, review queue and audit log.
 - [ ] **5. Evals in CI and a fault generator.**
-- [ ] **6. Monitoring.** Layout drift, variance control charts, silent carriers, kill switches.
+- [ ] **6. Monitoring.** Started: a kill switch per carrier, and each period's signals on the AI
+      accuracy page (statements that add up, changed layouts, silent and paused carriers, lines needing a
+      person, retried readings). Still to do: history, control charts and alerts.
 - [x] **7. A second tenant.** Retailer remittances for a beauty brand group, on the same engine.
 - [ ] **8. Production adapters.**
 - [ ] **9. Runbook and decision records.**

@@ -348,3 +348,34 @@ tables, tabs and the libraries behind them (Recharts, TanStack Table, Radix Tabs
 | Evals, reading both kinds of PDF                                    | 6 of 6 statements read field for field, live |
 | Typecheck, lint, format, server and web tests                       | Pass, 170 server and 3 web tests             |
 | Both admins rendered in a headless browser and looked at            | Screenshots in `docs/images/`                |
+
+## Milestone 6, started: a kill switch and the signals (2026-10-30)
+
+**Built**
+
+- A kill switch per carrier: `paused: <reason>` in `tenant.yaml`. The statement is not read, nothing
+  from it is paid, no model call is made, and the admin and the report say it was paused and why.
+- Each period's signals, on the admin's AI accuracy page: statements that add up to the cent, layouts
+  that changed, carriers that sent nothing, carriers switched off, lines needing a person, and readings
+  retried on the stronger model. Each is green or flagged, with the names behind a flag.
+
+**Decisions**
+
+- Only the signals that need no history. Control bands, trends and alerts need runs stored over time,
+  which is the Postgres milestone; the design's signal table says which is which.
+- The share of lines needing a person has a fixed 15% limit until there is history for a band.
+- The switch is config, so turning a carrier off is a reviewed change with a name on it, like an
+  approval.
+
+**AI and human**
+
+- The human said to continue with the recommended order after the second tenant.
+
+**Verified**
+
+| Check                                                 | Result                       |
+| ----------------------------------------------------- | ---------------------------- |
+| Signals for a normal month, and for each kind of flag | Unit tests pass              |
+| A paused carrier is not read and the others close     | End-to-end test passes       |
+| A changed layout flagged in the admin                 | Screenshot in `docs/images/` |
+| Typecheck, lint, format, server and web tests         | Pass                         |
