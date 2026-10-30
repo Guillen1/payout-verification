@@ -163,14 +163,18 @@ export interface EvalSummary {
 export interface HealthView {
   evals: EvalSummary | null;
   latestPeriod: string | null;
-  held: { carrier: string; reason: string }[];
-  modelUse: {
-    task: string;
-    model: string;
-    calls: number;
-    replayed: number;
-    inputTokens: number;
-    outputTokens: number;
-    costUsd: number;
-  }[];
+  modelUse: { task: string; model: string; calls: number; replayed: number; costPerCallUsd: number }[];
+}
+
+export type Target = { kind: "carrier"; period: string; carrierId: string } | { kind: "bonus"; programId: string };
+
+export interface OverviewView {
+  tenantName: string;
+  period: string | null;
+  foundCents: number;
+  found: { target: Target; carrierName: string; subject: string; cents: number; reasons: string[] }[];
+  checked: { statements: number; processed: number; lines: number; needsPerson: number; bonusPrograms: number };
+  waiting: { target: Target; title: string; detail: string }[];
+  accuracy: { passed: boolean; lowestScore: number; readingsTested: number; retries: number } | null;
+  costPerStatementUsd: number | null;
 }

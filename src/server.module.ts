@@ -5,6 +5,7 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import { ApprovalsModule } from "./modules/approvals/approvals.module";
 import { BonusModule } from "./modules/bonus/bonus.module";
 import { EvalsModule } from "./modules/evals/evals.module";
+import { OverviewModule } from "./modules/overview/overview.module";
 import { ReconciliationModule } from "./modules/reconciliation/reconciliation.module";
 
 /** The admin: the JSON API under /api, and the built web app for everything else. */
@@ -15,7 +16,8 @@ import { ReconciliationModule } from "./modules/reconciliation/reconciliation.mo
     ReconciliationModule,
     BonusModule,
     EvalsModule,
-    ApprovalsModule
+    ApprovalsModule,
+    OverviewModule
   ]
 })
 export class ServerModule {}

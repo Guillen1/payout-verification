@@ -21,6 +21,8 @@ import type { PeriodView } from "../../../reconciliation/application/views/perio
 import type { HealthView } from "../../../evals/application/health.service";
 import type { PendingApproval } from "../../application/approvals.service";
 import { ApprovalsModule } from "../../approvals.module";
+import { OverviewModule } from "../../../overview/overview.module";
+import type { OverviewView } from "../../../overview/application/overview.service";
 
 /*
  * The admin API end to end, as a reviewer would use it: run a period in which one carrier changed
@@ -84,7 +86,8 @@ describe("admin API: run, approve, run again", () => {
         ReconciliationModule,
         BonusModule,
         ApprovalsModule,
-        EvalsModule
+        EvalsModule,
+        OverviewModule
       ]
     })
       .overrideProvider(ModelAbstractClient)
@@ -117,6 +120,14 @@ describe("admin API: run, approve, run again", () => {
     expect(pending).toEqual([
       expect.objectContaining({ id: `layout:${PERIOD}:bluestem`, verified: true }),
       expect.objectContaining({ id: `bonus:${PROGRAM}` })
+    ]);
+  });
+
+  it("puts both on the overview as waiting for a person", async () => {
+    const overview = body<OverviewView>(await api().get("/api/overview").expect(200));
+    expect(overview.waiting.map(item => item.target)).toEqual([
+      { kind: "carrier", period: PERIOD, carrierId: "bluestem" },
+      { kind: "bonus", programId: PROGRAM }
     ]);
   });
 
@@ -163,9 +174,20 @@ describe("admin API: run, approve, run again", () => {
     await api().get("/api/periods/not-a-period").expect(400);
   });
 
-  it("reports health from the latest run", async () => {
+  it("leads the overview with the money found, largest first", async () => {
+    const overview = body<OverviewView>(await api().get("/api/overview").expect(200));
+    const bonusOwed = bonus.labels.expectedBonusCents - bonus.labels.paidCents;
+
+    expect(overview.waiting).toEqual([]);
+    expect(overview.found[0]).toMatchObject({ target: { kind: "bonus", programId: PROGRAM }, cents: bonusOwed });
+    expect(overview.foundCents).toBe(overview.found.reduce((sum, entry) => sum + entry.cents, 0));
+    expect(overview.checked).toMatchObject({ statements: 3, processed: 3 });
+  });
+
+  it("reports what the model was asked for the latest run", async () => {
     const health = body<HealthView>(await api().get("/api/health").expect(200));
-    expect(health).toMatchObject({ latestPeriod: PERIOD, held: [] });
+    expect(health.latestPeriod).toBe(PERIOD);
+    expect(health.modelUse.map(row => row.task)).toContain("read-pdf-statement");
   });
 });
 

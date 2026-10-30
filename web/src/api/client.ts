@@ -1,5 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { BonusProgramSummary, BonusView, HealthView, PendingApproval, PeriodSummary, PeriodView } from "./types";
+import type {
+  BonusProgramSummary,
+  BonusView,
+  HealthView,
+  OverviewView,
+  PendingApproval,
+  PeriodSummary,
+  PeriodView
+} from "./types";
 
 export class ApiError extends Error {
   constructor(
@@ -19,6 +27,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) throw new ApiError(response.status, body?.message ?? response.statusText);
   return body as T;
 }
+
+export const useOverview = () =>
+  useQuery({ queryKey: ["overview"], queryFn: () => request<OverviewView>("/overview") });
 
 export const usePeriods = () =>
   useQuery({ queryKey: ["periods"], queryFn: () => request<PeriodSummary[]>("/periods") });

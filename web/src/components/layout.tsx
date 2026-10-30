@@ -1,4 +1,4 @@
-import { Activity, BadgeCheck, Landmark, Scale } from "lucide-react";
+import { Landmark, LayoutDashboard, Scale, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { useApprovals, usePeriods } from "@/api/client";
@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 export function Layout() {
   const { data: periods } = usePeriods();
   const { data: approvals } = useApprovals();
+  const waiting = approvals?.length ?? 0;
   const { pathname } = useLocation();
   const latest = periods?.find(entry => entry.hasRun)?.period ?? periods?.[0]?.period;
 
@@ -24,22 +25,27 @@ export function Layout() {
         </div>
 
         <nav className="flex flex-col gap-0.5">
-          <Item to={latest ? `/periods/${latest}` : "/"} icon={<Landmark />} active={pathname.startsWith("/periods")}>
+          <Item to="/" icon={<LayoutDashboard />} end>
+            Overview
+            {waiting > 0 && (
+              <span className="ml-auto rounded-full bg-warning-soft px-1.5 text-xs font-semibold text-warning-ink">
+                {waiting}
+              </span>
+            )}
+          </Item>
+          <Item
+            to={latest ? `/periods/${latest}` : "/"}
+            icon={<Landmark />}
+            active={pathname.startsWith("/periods")}
+            end
+          >
             Commissions
           </Item>
           <Item to="/bonus" icon={<Scale />}>
             Profit sharing
           </Item>
-          <Item to="/approvals" icon={<BadgeCheck />}>
-            Approvals
-            {approvals && approvals.length > 0 && (
-              <span className="ml-auto rounded-full bg-warning-soft px-1.5 text-xs font-semibold text-warning-ink">
-                {approvals.length}
-              </span>
-            )}
-          </Item>
-          <Item to="/health" icon={<Activity />}>
-            Health
+          <Item to="/accuracy" icon={<ShieldCheck />}>
+            AI accuracy
           </Item>
         </nav>
 
@@ -57,10 +63,23 @@ export function Layout() {
   );
 }
 
-function Item({ to, icon, active, children }: { to: string; icon: ReactNode; active?: boolean; children: ReactNode }) {
+function Item({
+  to,
+  icon,
+  active,
+  end,
+  children
+}: {
+  to: string;
+  icon: ReactNode;
+  active?: boolean;
+  end?: boolean;
+  children: ReactNode;
+}) {
   return (
     <NavLink
       to={to}
+      end={end}
       className={({ isActive }) =>
         cn(
           "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground [&_svg]:size-4",

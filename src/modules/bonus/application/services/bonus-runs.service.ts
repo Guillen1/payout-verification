@@ -64,13 +64,18 @@ export class BonusRunsService {
 
   /** The last run of a program as the admin shows it, or null if it has not been run. */
   async view(paths: AppPaths, programId: string): Promise<BonusView | null> {
+    const saved = await this.result(paths, programId);
+    if (saved === null) return null;
+    const names = namesFor(await loadTenant(paths.tenant), saved.result.program.carrierId);
+    return toBonusView(saved.result, names, saved.ranAt);
+  }
+
+  /** The last run's result as written, or null if the program has not been run. */
+  async result(paths: AppPaths, programId: string): Promise<{ result: BonusResult; ranAt: string } | null> {
     const file = join(paths.out, "bonus", await this.knownProgram(paths, programId), "result.json");
     const saved = await readIfPresent(file);
     if (saved === null) return null;
-    const result = JSON.parse(saved) as BonusResult;
-    const names = namesFor(await loadTenant(paths.tenant), result.program.carrierId);
-    const ranAt = (await stat(file)).mtime.toISOString();
-    return toBonusView(result, names, ranAt);
+    return { result: JSON.parse(saved) as BonusResult, ranAt: (await stat(file)).mtime.toISOString() };
   }
 
   /** The tenant's bonus programs, and whether each has been run. */

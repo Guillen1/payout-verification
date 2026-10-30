@@ -44,19 +44,22 @@ person to approve it.
 pnpm admin            # builds the web app and serves it with the API at http://localhost:3000
 ```
 
-A local admin over the same results: the period at a glance, every line of every statement, the bonus
-check, the approvals, and the health signals. It runs periods and bonus checks, and approving a proposal
+A local admin over the same results, made to show the outcome to the people who decide: the money
+found, the statements and the bonus behind it, and how far the AI's reading can be trusted. It runs periods and bonus checks, and approving a proposal
 there writes it into the tenant's config with the reviewer's name in `approvals.jsonl`. The page only
 displays; every amount comes from the API already computed. It listens on localhost only and has no
 logins, so it is for one person on their own machine.
 
-![The period overview](docs/images/admin-commissions.png)
+![The overview](docs/images/admin-overview.png)
 
-| Bonus check                                                   | Approvals                                     |
-| ------------------------------------------------------------- | --------------------------------------------- |
-| ![The bonus check](docs/images/admin-bonus.png)               | ![Approvals](docs/images/admin-approvals.png) |
-| **Statement lines**                                           | **Health**                                    |
-| ![A carrier's statement lines](docs/images/admin-carrier.png) | ![Health](docs/images/admin-health.png)       |
+The overview leads with the money found, where it is and why, and anything waiting for a person. A
+held carrier shows the model's proposed fix with an approve button, right where the problem is.
+
+| A held carrier, with the proposed fix                         | The bonus check                                 |
+| ------------------------------------------------------------- | ----------------------------------------------- |
+| ![Approving a changed layout](docs/images/admin-approval.png) | ![The bonus check](docs/images/admin-bonus.png) |
+| **Statement lines that need a person**                        | **AI accuracy**                                 |
+| ![A carrier's statement lines](docs/images/admin-carrier.png) | ![AI accuracy](docs/images/admin-accuracy.png)  |
 
 To work on it, run `pnpm admin:api` (the API on port 3000, restarting on change) and `pnpm --filter web dev`
 (the page on Vite, forwarding `/api`).

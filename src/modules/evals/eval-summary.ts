@@ -1,3 +1,6 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
 /** The eval result the admin reads, written beside the Markdown report as report.json. */
 export interface EvalSummary {
   ranAt: string;
@@ -18,3 +21,13 @@ export const MEASURE_LABELS: Record<string, string> = {
   proposalsCorrect: "Layout proposals correct",
   bonusRulesCorrect: "Bonus rules read correctly"
 };
+
+/** The last eval run, or null if the evals have not been run. */
+export async function readEvalSummary(outDirectory: string): Promise<EvalSummary | null> {
+  try {
+    return JSON.parse(await readFile(join(outDirectory, "evals", "report.json"), "utf8")) as EvalSummary;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+}

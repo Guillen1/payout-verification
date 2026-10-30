@@ -280,3 +280,19 @@ Markdown files and terminal output.
 | Server tests, including the approve-and-rerun API flow  | 150 pass                      |
 | Web tests                                               | 5 pass                        |
 | Every page rendered in a headless browser and looked at | Screenshots in `docs/images/` |
+
+### Redesigned for the people who decide (2026-10-30)
+
+The human asked for only powerful data, no noise: the admin is a demo for stakeholders, not an
+engineering console. Changed:
+
+- A new first screen: the money found ($28,125.62 in the demo), where it is and why in plain words,
+  what is waiting for a person, and three proof points (lines checked automatically, AI accuracy
+  against the answer key, cost to read a statement). Summed on the server.
+- Approvals moved onto the page where the problem is, with one "approve and run again" step. The
+  separate approvals page is gone; the API is unchanged.
+- Removed what repeated another number or decorated: the network-share tile, the allocation bar, the
+  paid-vs-expected chart, duplicate tiles, four of six tabs, token counts, the held list on the health
+  page. "Health" became "AI accuracy".
+- Rate disputes now give the reason only ("Underpaid: the rate in effect is 12.00%, since
+  2026-09-01"); the amounts are already beside them, in the admin, the report and the letters.

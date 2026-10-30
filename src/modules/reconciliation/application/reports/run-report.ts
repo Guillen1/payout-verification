@@ -105,6 +105,7 @@ function linesSection(
               line.policy?.policyNumber ?? line.line.policyNumber ?? "(blank)",
               line.finding.replaceAll("_", " "),
               formatMoney(line.line.commissionCents),
+              line.expectedCents === null ? "" : formatMoney(line.expectedCents),
               line.explanation
             ].join(" | ")
           )
@@ -116,8 +117,8 @@ function linesSection(
     "",
     note,
     "",
-    "| Carrier | Row | Policy | Finding | Paid | Detail |",
-    "| --- | ---: | --- | --- | ---: | --- |",
+    "| Carrier | Row | Policy | Finding | Paid | Expected | Detail |",
+    "| --- | ---: | --- | --- | ---: | ---: | --- |",
     ...rows.map(row => `| ${row} |`)
   ].join("\n");
 }

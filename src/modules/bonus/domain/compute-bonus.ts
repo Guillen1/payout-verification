@@ -75,12 +75,13 @@ export function computeExpectedBonus(
       clause: rules.lossRatioBands.clause
     },
     { step: "Bonus rate for that loss ratio", value: formatRate(rateBps), clause: rules.lossRatioBands.clause },
-    { step: "Bonus before any maximum", value: formatMoney(uncappedCents), clause: rules.lossRatioBands.clause }
+    { step: "Eligible premium × rate", value: formatMoney(uncappedCents), clause: rules.lossRatioBands.clause }
   ];
   if (maximum) {
+    const capped = uncappedCents > maximum.cents;
     steps.push({
       step: `Maximum bonus: ${formatMoney(maximum.cents)}`,
-      value: formatMoney(bonusCents),
+      value: capped ? formatMoney(bonusCents) : "not reached",
       clause: maximum.clause
     });
   }

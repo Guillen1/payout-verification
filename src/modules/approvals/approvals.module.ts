@@ -9,6 +9,7 @@ import { ApprovalsController } from "./controllers/approvals.controller";
 @Module({
   imports: [AppPathsModule, ReconciliationModule, BonusModule],
   controllers: [ApprovalsController],
-  providers: [ApprovalsService]
+  providers: [ApprovalsService],
+  exports: [ApprovalsService]
 })
 export class ApprovalsModule {}

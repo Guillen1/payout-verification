@@ -2,7 +2,6 @@ import { ArrowRight, FileSpreadsheet, FileText } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { ApiError, usePeriod, useRunPeriod } from "@/api/client";
 import type { CarrierView, PeriodView } from "@/api/types";
-import { AllocationBar, AllocationLegend } from "@/components/allocation-bar";
 import { PageHeader } from "@/components/page-header";
 import { Stat } from "@/components/stat";
 import { ErrorState, Loading, NotRunYet, RunButton } from "@/components/states";
@@ -10,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { dateTime, money, periodName } from "@/lib/format";
 
-/** One period at a glance: is it safe to pay, and what needs a person. */
-export function OverviewPage() {
+/** One month of carrier statements: what each carrier paid, what it still owes, what needs a person. */
+export function CommissionsPage() {
   const { period = "" } = useParams();
   const { data: view, error, isLoading } = usePeriod(period);
   const run = useRunPeriod();
@@ -39,44 +38,37 @@ export function OverviewPage() {
 
       <Totals view={view} />
 
-      <div className="mt-8 mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Carriers</h2>
-        <AllocationLegend />
-      </div>
+      <h2 className="mt-8 mb-3 text-sm font-semibold">Carriers</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {view.carriers.map(carrier => (
           <CarrierCard key={carrier.id} period={view.period} carrier={carrier} />
         ))}
       </div>
-
-      <ModelNote view={view} />
     </>
   );
 }
 
 function Totals({ view }: { view: PeriodView }) {
   const { totals } = view;
-  const held = view.carriers.filter(carrier => carrier.state !== "processed").length;
+  const processed = view.carriers.filter(carrier => carrier.state === "processed").length;
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+    <div className="grid gap-4 md:grid-cols-3">
       <Stat
         label="Paid by carriers"
         value={money(totals.paidCents)}
-        hint={`${view.carriers.length - held} of ${view.carriers.length} statements processed`}
-      />
-      <Stat label="To agencies" value={money(totals.toAgenciesCents)} />
-      <Stat label="Kept by the network" value={money(totals.toNetworkCents)} />
-      <Stat
-        label="Held for review"
-        value={money(totals.heldCents)}
-        tone={totals.heldCents > 0 ? "warning" : "neutral"}
-        hint="Not paid out until a person decides"
+        hint={`${processed} of ${view.carriers.length} statements checked`}
       />
       <Stat
         label="Owed by carriers"
         value={money(totals.owedCents)}
         tone={totals.owedCents > 0 ? "critical" : "neutral"}
-        hint="Underpaid lines and missing commission"
+        hint="Paid below the agreed rate, or never paid"
+      />
+      <Stat
+        label="Held for review"
+        value={money(totals.heldCents)}
+        tone={totals.heldCents > 0 ? "warning" : "neutral"}
+        hint="Not paid out until a person decides"
       />
     </div>
   );
@@ -101,8 +93,7 @@ function CarrierCard({ period, carrier }: { period: string; carrier: CarrierView
         {carrier.totals ? (
           <>
             <div className="tabular mt-4 text-2xl font-semibold tracking-tight">{money(carrier.totals.paidCents)}</div>
-            <div className="mb-3 text-xs text-muted-foreground">paid this period</div>
-            <AllocationBar amounts={carrier.totals} />
+            <div className="text-xs text-muted-foreground">paid this period</div>
             <div className="mt-4 flex flex-wrap gap-1.5">
               <Badge tone="good">{carrier.counts.clear} clear</Badge>
               {carrier.counts.dispute > 0 && <Badge tone="critical">{carrier.counts.dispute} dispute</Badge>}
@@ -144,17 +135,4 @@ function StateBadge({ carrier }: { carrier: CarrierView }) {
     case "not_received":
       return <Badge tone="warning">Not received</Badge>;
   }
-}
-
-function ModelNote({ view }: { view: PeriodView }) {
-  if (view.modelCalls.length === 0) return null;
-  const models = [...new Set(view.modelCalls.map(call => call.model))].join(", ");
-  const replayed = view.modelCalls.filter(call => call.source === "recording").length;
-  return (
-    <p className="mt-8 text-xs text-muted-foreground">
-      PDF statements read by {models}. {view.modelCalls.length} model call(s)
-      {replayed > 0 ? `, ${replayed} replayed from recordings` : ""}. The model reads; every amount is computed and
-      checked by code.
-    </p>
-  );
 }

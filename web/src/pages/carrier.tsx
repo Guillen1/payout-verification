@@ -6,17 +6,17 @@ import {
   type ColumnDef,
   type SortingState
 } from "@tanstack/react-table";
-import { ArrowLeft, ArrowUpDown, BadgeCheck } from "lucide-react";
+import { ArrowLeft, ArrowUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { useCommissionLetter, usePeriod } from "@/api/client";
 import type { CarrierView, LineView, MissingView } from "@/api/types";
+import { ApprovalPanel } from "@/components/approval-panel";
 import { DispositionBadge } from "@/components/disposition-badge";
 import { LetterDialog } from "@/components/letter-dialog";
 import { PageHeader } from "@/components/page-header";
 import { Stat } from "@/components/stat";
 import { ErrorState, Loading } from "@/components/states";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,84 +47,65 @@ export function CarrierPage() {
         title={carrier.name}
         actions={carrier.owedCents > 0 && <LetterDialog title={`Letter to ${carrier.name}`} useLetter={useLetter} />}
       />
-      {carrier.hold ? <HoldCard carrier={carrier} /> : <Statement carrier={carrier} />}
+      {carrier.hold ? <HoldCard period={period} carrier={carrier} /> : <Statement carrier={carrier} />}
     </>
   );
 }
 
-function HoldCard({ carrier }: { carrier: CarrierView }) {
-  const waitsForApproval = carrier.hold?.details.some(detail => detail.includes("waiting for approval"));
+function HoldCard({ period, carrier }: { period: string; carrier: CarrierView }) {
   return (
-    <Card className="border-warning/40 bg-warning-soft/40 p-6">
-      <div className="font-semibold">{carrier.hold?.reason}</div>
-      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-        {carrier.hold?.details.map(detail => (
-          <li key={detail}>{detail}</li>
-        ))}
-      </ul>
-      <p className="mt-3 text-sm">
-        Nothing from this statement is paid out until this is resolved. The other carriers still close.
-      </p>
-      {waitsForApproval && (
-        <Button asChild className="mt-4">
-          <Link to="/approvals">
-            <BadgeCheck /> Review the proposed mapping
-          </Link>
-        </Button>
-      )}
-    </Card>
+    <div className="flex flex-col gap-4">
+      <Card className="border-warning/40 bg-warning-soft/40 p-6">
+        <div className="font-semibold">Held. {carrier.hold?.reason}</div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Nothing from this statement is paid out until this is resolved. The other carriers still close.
+        </p>
+      </Card>
+      <ApprovalPanel approvalId={`layout:${period}:${carrier.id}`} />
+    </div>
   );
 }
 
 function Statement({ carrier }: { carrier: CarrierView }) {
   const totals = carrier.totals!;
   const attention = carrier.lines.filter(line => line.disposition !== "clear");
-  const byDisposition = (disposition: LineView["disposition"]) =>
-    carrier.lines.filter(line => line.disposition === disposition);
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <Stat label="Paid" value={money(totals.paidCents)} hint={`${carrier.lines.length} lines, ties out`} />
-        <Stat label="To agencies" value={money(totals.toAgenciesCents)} />
-        <Stat label="Kept by the network" value={money(totals.toNetworkCents)} />
+      <div className="grid gap-4 md:grid-cols-3">
+        <Stat
+          label="Paid"
+          value={money(totals.paidCents)}
+          hint={`${carrier.lines.length} lines, adds up to the statement total`}
+        />
+        <Stat label="Owed" value={money(carrier.owedCents)} tone={carrier.owedCents > 0 ? "critical" : "neutral"} />
         <Stat
           label="Held for review"
           value={money(totals.heldCents)}
           tone={totals.heldCents > 0 ? "warning" : "neutral"}
         />
-        <Stat label="Owed" value={money(carrier.owedCents)} tone={carrier.owedCents > 0 ? "critical" : "neutral"} />
       </div>
 
-      <Tabs defaultValue={attention.length > 0 ? "attention" : "all"} className="mt-8">
+      <Tabs defaultValue="attention" className="mt-8">
         <TabsList>
-          <TabsTrigger value="attention">Needs a person · {attention.length}</TabsTrigger>
-          <TabsTrigger value="dispute">Dispute · {carrier.counts.dispute}</TabsTrigger>
-          <TabsTrigger value="review">Review · {carrier.counts.review}</TabsTrigger>
-          <TabsTrigger value="clear">Clear · {carrier.counts.clear}</TabsTrigger>
-          <TabsTrigger value="missing">Never paid · {carrier.counts.missing}</TabsTrigger>
+          <TabsTrigger value="attention">Needs a person · {attention.length + carrier.missing.length}</TabsTrigger>
           <TabsTrigger value="all">All lines · {carrier.lines.length}</TabsTrigger>
         </TabsList>
-        <Card className="mt-3">
-          <TabsContent value="attention">
+        <TabsContent value="attention" className="mt-3 flex flex-col gap-4">
+          <Card>
             <LinesTable lines={attention} />
-          </TabsContent>
-          <TabsContent value="dispute">
-            <LinesTable lines={byDisposition("dispute")} />
-          </TabsContent>
-          <TabsContent value="review">
-            <LinesTable lines={byDisposition("review")} />
-          </TabsContent>
-          <TabsContent value="clear">
-            <LinesTable lines={byDisposition("clear")} />
-          </TabsContent>
-          <TabsContent value="missing">
-            <MissingTable missing={carrier.missing} />
-          </TabsContent>
-          <TabsContent value="all">
+          </Card>
+          {carrier.missing.length > 0 && (
+            <Card>
+              <MissingTable missing={carrier.missing} />
+            </Card>
+          )}
+        </TabsContent>
+        <TabsContent value="all" className="mt-3">
+          <Card>
             <LinesTable lines={carrier.lines} />
-          </TabsContent>
-        </Card>
+          </Card>
+        </TabsContent>
       </Tabs>
     </>
   );
@@ -255,8 +236,9 @@ function MissingTable({ missing }: { missing: MissingView[] }) {
   return (
     <>
       <p className="px-5 pt-4 text-sm text-muted-foreground">
-        Policies that took effect this period and appear on no line of the statement. Nothing on a statement points at a
-        payment that never came, so these are found by starting from the policy book.
+        <span className="font-medium text-foreground">Never paid. </span>
+        These policies took effect this month but appear nowhere on the statement. They are found by starting from the
+        policy book, because nothing on a statement points at a payment that never came.
       </p>
       <Table>
         <TableHeader>

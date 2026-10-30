@@ -175,13 +175,10 @@ function findSplitRule(rules: readonly SplitRule[], policy: Policy): SplitRule |
   return fallback.status === "found" ? fallback.rule : null;
 }
 
+/** The reason only: the amounts paid and expected are on the line beside it, in reports and letters alike. */
 function describeRateGap(line: StatementLine, rate: RateRule, expected: Cents): string {
   const direction = line.commissionCents < expected ? "Underpaid" : "Overpaid";
-  return (
-    `${direction} by ${formatMoney(Math.abs(line.commissionCents - expected))}: paid ` +
-    `${formatMoney(line.commissionCents)}, expected ${formatMoney(expected)} at ${formatRate(rate.rateBps)} ` +
-    `(rate in effect from ${rate.effectiveFrom}).`
-  );
+  return `${direction}: the rate in effect is ${formatRate(rate.rateBps)}, since ${rate.effectiveFrom}.`;
 }
 
 function describeMethod(method: MatchMethod): string {

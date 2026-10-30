@@ -29,7 +29,7 @@ describe("classifyLine", () => {
   it("disputes a line paid at the wrong rate and says by how much", () => {
     const result = classify(aLine({ commissionCents: 16_500 }));
     expect(result).toMatchObject({ finding: "rate_variance", disposition: "dispute", varianceCents: -1500 });
-    expect(result.explanation).toContain("Underpaid by $15.00");
+    expect(result.explanation).toBe("Underpaid: the rate in effect is 12.00%, since 2025-01-01.");
   });
 
   it("holds a line whose premium disagrees with the book, since either side may be wrong", () => {
