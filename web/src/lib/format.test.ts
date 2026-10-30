@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { label, money, moneyDelta, periodName, rate } from "./format";
+import { money, moneyDelta, periodName, rate } from "./format";
 
 describe("format", () => {
   it("shows cents as dollars, and a signed difference with a real minus sign", () => {
@@ -13,8 +13,7 @@ describe("format", () => {
     expect(rate(5_500)).toBe("55.00%");
   });
 
-  it("names periods and findings for people", () => {
+  it("names periods for people", () => {
     expect(periodName("2026-09")).toBe("September 2026");
-    expect(label("rate_variance")).toBe("Rate variance");
   });
 });

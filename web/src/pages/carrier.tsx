@@ -1,29 +1,15 @@
-import {
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-  type SortingState
-} from "@tanstack/react-table";
-import { ArrowLeft, ArrowUpDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { useCommissionLetter, usePeriod } from "@/api/client";
-import type { CarrierView, LineView, MissingView } from "@/api/types";
+import type { CarrierView, LineView } from "@/api/types";
 import { ApprovalPanel } from "@/components/approval-panel";
-import { DispositionBadge } from "@/components/disposition-badge";
 import { LetterDialog } from "@/components/letter-dialog";
-import { PageHeader } from "@/components/page-header";
-import { Stat } from "@/components/stat";
 import { ErrorState, Loading } from "@/components/states";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { label, money, moneyDelta, periodName } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { money, moneyDelta, periodName } from "@/lib/format";
 
-/** One carrier's statement: every line with its outcome, and the commission that never came. */
+/** One carrier's statement: only what needs a person, and how much each item is worth. */
 export function CarrierPage() {
   const { period = "", carrierId = "" } = useParams();
   const { data: view, error, isLoading } = usePeriod(period);
@@ -35,242 +21,114 @@ export function CarrierPage() {
   if (!carrier) return <ErrorState error={new Error(`No carrier ${carrierId} in ${period}`)} />;
 
   return (
-    <>
-      <Link
-        to={`/periods/${period}`}
-        className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" /> {periodName(period)}
-      </Link>
-      <PageHeader
-        eyebrow={`${carrier.fileKind.toUpperCase()} statement, ${periodName(period)}`}
-        title={carrier.name}
-        actions={carrier.owedCents > 0 && <LetterDialog title={`Letter to ${carrier.name}`} useLetter={useLetter} />}
-      />
-      {carrier.hold ? <HoldCard period={period} carrier={carrier} /> : <Statement carrier={carrier} />}
-    </>
-  );
-}
+    <div className="flex flex-col gap-8">
+      <div>
+        <Link
+          to={`/periods/${period}`}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" /> {periodName(period)}
+        </Link>
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">{carrier.name}</h1>
+            {carrier.state === "processed" && (
+              <p className="mt-1 text-muted-foreground">
+                <span className="tabular font-semibold text-critical-ink">{money(carrier.owedCents)} owed</span> ·{" "}
+                {issues(carrier).length} of {carrier.lines.length} lines need a person
+              </p>
+            )}
+          </div>
+          {carrier.owedCents > 0 && <LetterDialog title={`Letter to ${carrier.name}`} useLetter={useLetter} />}
+        </div>
+      </div>
 
-function HoldCard({ period, carrier }: { period: string; carrier: CarrierView }) {
-  return (
-    <div className="flex flex-col gap-4">
-      <Card className="border-warning/40 bg-warning-soft/40 p-6">
-        <div className="font-semibold">Held. {carrier.hold?.reason}</div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Nothing from this statement is paid out until this is resolved. The other carriers still close.
-        </p>
-      </Card>
-      <ApprovalPanel approvalId={`layout:${period}:${carrier.id}`} />
+      {carrier.hold ? (
+        <>
+          <p className="rounded-lg bg-warning-soft px-4 py-3 text-sm">
+            <span className="font-medium">Held:</span> {carrier.hold.reason} Nothing is paid out until it is resolved.
+          </p>
+          <ApprovalPanel approvalId={`layout:${period}:${carrier.id}`} />
+        </>
+      ) : (
+        <Issues carrier={carrier} />
+      )}
     </div>
   );
 }
 
-function Statement({ carrier }: { carrier: CarrierView }) {
-  const totals = carrier.totals!;
-  const attention = carrier.lines.filter(line => line.disposition !== "clear");
+interface Issue {
+  key: string;
+  policy: string;
+  insured: string;
+  what: string;
+  tone: "critical" | "warning";
+  amount: string;
+}
 
+function Issues({ carrier }: { carrier: CarrierView }) {
+  const rows = issues(carrier);
+  if (rows.length === 0) return <p className="text-muted-foreground">Every line was paid as agreed.</p>;
   return (
-    <>
-      <div className="grid gap-4 md:grid-cols-3">
-        <Stat
-          label="Paid"
-          value={money(totals.paidCents)}
-          hint={`${carrier.lines.length} lines, adds up to the statement total`}
-        />
-        <Stat label="Owed" value={money(carrier.owedCents)} tone={carrier.owedCents > 0 ? "critical" : "neutral"} />
-        <Stat
-          label="Held for review"
-          value={money(totals.heldCents)}
-          tone={totals.heldCents > 0 ? "warning" : "neutral"}
-        />
-      </div>
-
-      <Tabs defaultValue="attention" className="mt-8">
-        <TabsList>
-          <TabsTrigger value="attention">Needs a person · {attention.length + carrier.missing.length}</TabsTrigger>
-          <TabsTrigger value="all">All lines · {carrier.lines.length}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="attention" className="mt-3 flex flex-col gap-4">
-          <Card>
-            <LinesTable lines={attention} />
-          </Card>
-          {carrier.missing.length > 0 && (
-            <Card>
-              <MissingTable missing={carrier.missing} />
-            </Card>
-          )}
-        </TabsContent>
-        <TabsContent value="all" className="mt-3">
-          <Card>
-            <LinesTable lines={carrier.lines} />
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </>
+    <Card className="divide-y">
+      {rows.map(row => (
+        <div key={row.key} className="flex items-center gap-6 px-6 py-4">
+          <div className="w-40 shrink-0">
+            <div className="font-medium">{row.policy}</div>
+            <div className="truncate text-xs text-muted-foreground">{row.insured}</div>
+          </div>
+          <div className="flex-1">
+            <Badge tone={row.tone}>{row.what}</Badge>
+          </div>
+          <div className="tabular text-right font-medium">{row.amount}</div>
+        </div>
+      ))}
+    </Card>
   );
 }
 
-const columns: ColumnDef<LineView>[] = [
-  {
-    id: "source",
-    header: "Row",
-    accessorFn: line => line.row,
-    cell: ({ row: { original: line } }) => (
-      <span className="tabular text-muted-foreground">{line.page ? `p${line.page} · ${line.row}` : line.row}</span>
-    )
-  },
-  {
-    accessorKey: "policyNumber",
-    header: "Policy",
-    cell: ({ row: { original: line } }) => (
-      <div>
-        <div className="font-medium whitespace-nowrap">{line.policyNumber ?? "(blank)"}</div>
-        <div className="text-xs text-muted-foreground">{line.insuredName}</div>
-      </div>
-    )
-  },
-  {
-    accessorKey: "agency",
-    header: "Agency",
-    cell: ({ row: { original: line } }) => <span className="text-muted-foreground">{line.agency ?? "Not matched"}</span>
-  },
-  {
-    accessorKey: "disposition",
-    header: "Outcome",
-    cell: ({ row: { original: line } }) => (
-      <div className="flex flex-col items-start gap-1">
-        <DispositionBadge disposition={line.disposition} />
-        <span className="text-xs text-muted-foreground">{label(line.finding)}</span>
-      </div>
-    )
-  },
-  {
-    accessorKey: "paidCents",
-    header: "Paid",
-    cell: ({ row: { original: line } }) => <Amount cents={line.paidCents} />
-  },
-  {
-    accessorKey: "expectedCents",
-    header: "Expected",
-    cell: ({ row: { original: line } }) =>
-      line.expectedCents === null ? (
-        <span className="text-muted-foreground">-</span>
-      ) : (
-        <Amount cents={line.expectedCents} />
-      )
-  },
-  {
-    accessorKey: "varianceCents",
-    header: "Difference",
-    cell: ({ row: { original: line } }) =>
-      line.varianceCents === null || line.varianceCents === 0 ? (
-        <span className="text-muted-foreground">-</span>
-      ) : (
-        <span className={cn("tabular whitespace-nowrap", line.varianceCents < 0 && "font-medium text-critical-ink")}>
-          {moneyDelta(line.varianceCents)}
-        </span>
-      )
-  },
-  {
-    accessorKey: "explanation",
-    header: "Detail",
-    enableSorting: false,
-    cell: ({ row: { original: line } }) => (
-      <span className="block max-w-sm text-xs leading-relaxed text-muted-foreground">{line.explanation}</span>
-    )
+function issues(carrier: CarrierView): Issue[] {
+  const lines: Issue[] = carrier.lines
+    .filter(line => line.disposition !== "clear")
+    .map(line => ({
+      key: `line-${line.row}`,
+      policy: line.policyNumber ?? "No policy number",
+      insured: line.insuredName,
+      what: describe(line),
+      tone: line.disposition === "dispute" ? "critical" : "warning",
+      amount:
+        line.disposition === "dispute" && line.varianceCents !== null
+          ? moneyDelta(line.varianceCents)
+          : `${money(line.paidCents)} held`
+    }));
+  const missing: Issue[] = carrier.missing.map(entry => ({
+    key: `missing-${entry.policyNumber}`,
+    policy: entry.policyNumber,
+    insured: entry.insuredName,
+    what: "Never paid",
+    tone: "critical",
+    amount: entry.expectedCents === null ? "Unknown" : moneyDelta(-entry.expectedCents)
+  }));
+  return [...lines, ...missing];
+}
+
+function describe(line: LineView): string {
+  switch (line.finding) {
+    case "rate_variance":
+      return (line.varianceCents ?? 0) < 0 ? "Paid below the agreed rate" : "Paid above the agreed rate";
+    case "duplicate":
+      return "Printed twice";
+    case "unmatched":
+      return "Not in the policy book";
+    case "ambiguous_match":
+      return "Matches more than one policy";
+    case "premium_variance":
+      return "Premium differs from the policy book";
+    case "no_rate_rule":
+      return "No rate on file";
+    case "no_split_rule":
+      return "No agency split on file";
+    default:
+      return line.explanation;
   }
-];
-
-function LinesTable({ lines }: { lines: LineView[] }) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const data = useMemo(() => lines, [lines]);
-  const table = useReactTable({
-    data,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel()
-  });
-
-  if (lines.length === 0) return <Empty text="No lines here." />;
-  return (
-    <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map(group => (
-          <TableRow key={group.id} className="hover:bg-transparent">
-            {group.headers.map(header => (
-              <TableHead key={header.id}>
-                {header.column.getCanSort() ? (
-                  <button
-                    className="inline-flex items-center gap-1 hover:text-foreground"
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    <ArrowUpDown className="size-3" />
-                  </button>
-                ) : (
-                  flexRender(header.column.columnDef.header, header.getContext())
-                )}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map(row => (
-          <TableRow key={row.id}>
-            {row.getVisibleCells().map(cell => (
-              <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-}
-
-function MissingTable({ missing }: { missing: MissingView[] }) {
-  if (missing.length === 0) return <Empty text="Every policy that took effect this period was paid." />;
-  return (
-    <>
-      <p className="px-5 pt-4 text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">Never paid. </span>
-        These policies took effect this month but appear nowhere on the statement. They are found by starting from the
-        policy book, because nothing on a statement points at a payment that never came.
-      </p>
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead>Policy</TableHead>
-            <TableHead>Agency</TableHead>
-            <TableHead>Effective</TableHead>
-            <TableHead>Expected commission</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {missing.map(entry => (
-            <TableRow key={entry.policyNumber}>
-              <TableCell>
-                <div className="font-medium">{entry.policyNumber}</div>
-                <div className="text-xs text-muted-foreground">{entry.insuredName}</div>
-              </TableCell>
-              <TableCell className="text-muted-foreground">{entry.agency}</TableCell>
-              <TableCell className="tabular text-muted-foreground">{entry.effectiveDate}</TableCell>
-              <TableCell>{entry.expectedCents === null ? "Unknown" : <Amount cents={entry.expectedCents} />}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </>
-  );
-}
-
-function Amount({ cents }: { cents: number }) {
-  return <span className="tabular whitespace-nowrap">{money(cents)}</span>;
-}
-
-function Empty({ text }: { text: string }) {
-  return <p className="p-8 text-center text-sm text-muted-foreground">{text}</p>;
 }

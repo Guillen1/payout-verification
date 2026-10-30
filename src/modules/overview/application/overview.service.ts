@@ -162,10 +162,10 @@ function commissionFound(period: PeriodView, carrier: CarrierView): MoneyFound {
 function bonusReason(finding: BonusFinding, agencyName: (agencyId: string) => string): string {
   switch (finding.kind) {
     case "rate_differs":
-      return `Paid at ${formatRate(finding.statedBps)} instead of ${formatRate(finding.agreementBps)} (clause ${finding.clause})`;
+      return `Paid at ${formatRate(finding.statedBps)} instead of ${formatRate(finding.agreementBps)}`;
     case "premium_difference":
       return finding.statementCents === 0
-        ? `${agencyName(finding.agencyId)} left out entirely (clause ${finding.clause})`
+        ? `${agencyName(finding.agencyId)} left out`
         : `${agencyName(finding.agencyId)} counted at ${formatMoney(finding.statementCents)}, not ${formatMoney(finding.networkCents)}`;
     case "loss_ratio_differs":
       return `Loss ratio stated as ${formatRate(finding.statedBps)}, but its own figures give ${formatRate(finding.computedBps)}`;

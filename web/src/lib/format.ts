@@ -4,15 +4,9 @@
  */
 
 const dollars = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-const wholeDollars = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 export function money(cents: number): string {
   return dollars.format(cents / 100);
-}
-
-/** For chart axes, where cents are noise. */
-export function moneyShort(cents: number): string {
-  return wholeDollars.format(cents / 100);
 }
 
 /** A signed difference, for variances: "+$12.00", "−$25.49". */
@@ -37,14 +31,4 @@ export function periodName(period: string): string {
     year: "numeric",
     timeZone: "UTC"
   });
-}
-
-export function dateTime(iso: string): string {
-  return new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
-}
-
-/** "rate_variance" as "Rate variance". */
-export function label(code: string): string {
-  const words = code.replaceAll("_", " ");
-  return words.charAt(0).toUpperCase() + words.slice(1);
 }

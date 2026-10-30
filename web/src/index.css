@@ -28,9 +28,6 @@
   --status-critical-ink: #8f1f1f;
 
   --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --series-3: #1baf7a;
-  --chart-grid: #e7e5e4;
 }
 
 @theme inline {
@@ -55,8 +52,6 @@
   --color-critical-soft: var(--status-critical-soft);
   --color-critical-ink: var(--status-critical-ink);
   --color-series-1: var(--series-1);
-  --color-series-2: var(--series-2);
-  --color-series-3: var(--series-3);
 }
 
 body {

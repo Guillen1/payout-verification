@@ -424,12 +424,12 @@ uses nest-commander. Zod validates every boundary (config files, model answers),
 calls Claude with structured outputs, Faker generates the demo data, Vitest with SWC runs the
 tests.
 
-The admin is a separate package in the same workspace: React 19 on Vite, Tailwind with shadcn/ui
-components, TanStack Query for data, TanStack Table for statement lines, and Recharts for the two bonus
-charts. Nest serves it and a small JSON API from the same process. A single-page app rather than
-Next.js: it is a local tool with no SEO or server rendering to gain, so a static build served by the
-API is the least to run. The page formats numbers and never computes them: every total arrives from
-the API in cents. Later milestones add Postgres (Kysely or TypeORM).
+The admin is a separate package in the same workspace: React 19 on Vite, Tailwind with a few
+shadcn/ui components, and TanStack Query for data. Nest serves it and a small JSON API from the same
+process. It is made to show the outcome to the people who decide, so each screen leads with one number
+and the few items behind it; detail is one click away. A single-page app rather than Next.js: a local
+tool gains nothing from server rendering. The page formats numbers and never computes them: every
+total arrives from the API in cents. Later milestones add Postgres (Kysely or TypeORM).
 
 ## 16. Repo layout
 

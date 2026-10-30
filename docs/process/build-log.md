@@ -296,3 +296,12 @@ engineering console. Changed:
   page. "Health" became "AI accuracy".
 - Rate disputes now give the reason only ("Underpaid: the rate in effect is 12.00%, since
   2026-09-01"); the amounts are already beside them, in the admin, the report and the letters.
+
+### Minimal (2026-10-30)
+
+The human still saw too much. The rule now: each screen shows one headline number and the few items
+behind it; the explaining is the presenter's job. The overview is the amount found, three rows and
+one line of proof. A carrier is its owed amount and the lines that need a person, each with a plain
+label and an amount. A bonus is its owed amount and the two reasons, with the calculation behind
+"Show the calculation". Accuracy is one number and five bars. Navigation moved to a top bar. Charts,
+tables, tabs and the libraries behind them (Recharts, TanStack Table, Radix Tabs) were removed.

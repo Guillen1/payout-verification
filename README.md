@@ -185,7 +185,7 @@ A NestJS command-line app laid out by module: each one has `domain/` (plain func
 | `tenants/agency-network/`                     | The demo tenant: carriers, agencies, rates, splits, carrier formats and bonus programs.                    |
 | `recordings/`                                 | Recorded model answers, so the demo and CI run without a key.                                              |
 | `docs/design.md`                              | The design: goals, architecture, controls, monitoring and roadmap.                                         |
-| `web/`                                        | The admin: React, Vite, Tailwind with shadcn/ui components, TanStack Query and Table, Recharts.            |
+| `web/`                                        | The admin: React, Vite, Tailwind with shadcn/ui components, TanStack Query.                                |
 | `src/server.ts`, `src/modules/*/controllers/` | The admin's API: periods, bonus programs, approvals, health.                                               |
 | `src/modules/approvals/`                      | Model proposals waiting for a person, and applying one when approved.                                      |
 | `docs/process/`                               | How this was researched, decided and built with AI, including the research.                                |
