@@ -3,9 +3,15 @@ import type { Policy } from "../../reconciliation/domain/types";
 import type { StatementTranscript } from "../../extraction/application/services/pdf-statement-reader.service";
 import type { Tenant } from "../../reconciliation/infrastructure/tenant-files";
 import type { PeriodLabels, PlannedLine } from "./planned-line";
-import { renderHarborPineStatement } from "./pdf-renderer";
-import { createPolicyMaker } from "./policies";
-import { renderBluestemStatement, renderNorthwindStatement } from "./renderers";
+import { renderCoastalStatement, renderHarborPineStatement } from "./pdf-renderer";
+import { createPolicyMaker, INVOICE_PROFILE, POLICY_PROFILE, type RecordProfile } from "./policies";
+import {
+  renderBluestemStatement,
+  renderBrightlineStatement,
+  renderMapleMainStatement,
+  renderNorthwindStatement
+} from "./renderers";
+import { brightlineScenario, coastalScenario, mapleMainScenario } from "./retail-scenarios";
 import { bluestemScenario, harborPineScenario, northwindScenario, type CarrierScenario } from "./scenarios";
 
 export interface DemoStatement {
@@ -31,32 +37,52 @@ type Render = (
   context: { period: string; networkName: string }
 ) => Promise<RenderedStatement>;
 
-const CARRIERS: Record<string, { scenario: typeof northwindScenario; render: Render }> = {
-  "northwind": {
-    scenario: northwindScenario,
-    render: lines => Promise.resolve({ extension: "csv", content: renderNorthwindStatement(lines) })
+const csv =
+  (render: (lines: readonly PlannedLine[]) => string): Render =>
+  lines =>
+    Promise.resolve({ extension: "csv", content: render(lines) });
+
+const pdf =
+  (render: typeof renderHarborPineStatement): Render =>
+  async (lines, context) => {
+    const { pdf: content, transcript } = await render(lines, context);
+    return { extension: "pdf", content, transcript };
+  };
+
+/** Each demo tenant: what its records look like, and how each of its counterparties behaves and prints. */
+const DEMO_TENANTS: Record<
+  string,
+  { profile: RecordProfile; carriers: Record<string, { scenario: typeof northwindScenario; render: Render }> }
+> = {
+  "agency-network": {
+    profile: POLICY_PROFILE,
+    carriers: {
+      "northwind": { scenario: northwindScenario, render: csv(renderNorthwindStatement) },
+      "bluestem": { scenario: bluestemScenario, render: csv(renderBluestemStatement) },
+      "harbor-pine": { scenario: harborPineScenario, render: pdf(renderHarborPineStatement) }
+    }
   },
-  "bluestem": {
-    scenario: bluestemScenario,
-    render: lines => Promise.resolve({ extension: "csv", content: renderBluestemStatement(lines) })
-  },
-  "harbor-pine": {
-    scenario: harborPineScenario,
-    render: async (lines, context) => {
-      const { pdf, transcript } = await renderHarborPineStatement(lines, context);
-      return { extension: "pdf", content: pdf, transcript };
+  "brand-group": {
+    profile: INVOICE_PROFILE,
+    carriers: {
+      "brightline": { scenario: brightlineScenario, render: csv(renderBrightlineStatement) },
+      "maple-main": { scenario: mapleMainScenario, render: csv(renderMapleMainStatement) },
+      "coastal": { scenario: coastalScenario, render: pdf(renderCoastalStatement) }
     }
   }
 };
 
 /**
- * Builds one period of demo data for a tenant: the policy book, each carrier's statement file,
+ * Builds one period of demo data for a tenant: the book of record, each counterparty's statement file,
  * and the answer key. The same seed always produces the same data, byte for byte.
  */
 export async function generateDemoData(input: { tenant: Tenant; period: Period; seed: number }): Promise<DemoData> {
+  const demoTenant = DEMO_TENANTS[input.tenant.id];
+  if (!demoTenant) throw new Error(`No demo data for tenant "${input.tenant.id}"`);
   const makePolicy = createPolicyMaker(
     input.seed,
-    input.tenant.agencies.map(agency => agency.agencyId)
+    input.tenant.agencies.map(agency => agency.agencyId),
+    demoTenant.profile
   );
 
   const policies: Policy[] = [];
@@ -64,7 +90,7 @@ export async function generateDemoData(input: { tenant: Tenant; period: Period; 
   const labels: PeriodLabels = { period: input.period, carriers: {} };
 
   for (const carrier of input.tenant.carriers) {
-    const generator = CARRIERS[carrier.id];
+    const generator = demoTenant.carriers[carrier.id];
     if (!generator) throw new Error(`No demo scenario for carrier "${carrier.id}"`);
 
     const scenario: CarrierScenario = generator.scenario({

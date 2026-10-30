@@ -3,12 +3,15 @@ import type { LineResult } from "./line-result";
 import { applyRate, formatMoney, formatRate, type Cents } from "./money";
 import type { MatchMethod, MatchResult } from "./policy-index";
 import type { Policy, RateRule, SplitRule, StatementLine } from "./types";
+import { capitalized, DEFAULT_VOCABULARY, type Vocabulary } from "./vocabulary";
 
 export interface ClassificationRules {
   rateRules: readonly RateRule[];
   splitRules: readonly SplitRule[];
   /** Per-line difference accepted as carrier rounding. */
   lineToleranceCents: Cents;
+  /** The tenant's words for explanations; the agency network's by default. */
+  words?: Vocabulary;
 }
 
 export interface LineToClassify {
@@ -26,6 +29,7 @@ export interface LineToClassify {
  */
 export function classifyLine(input: LineToClassify, rules: ClassificationRules): LineResult {
   const { line, match } = input;
+  const words = rules.words ?? DEFAULT_VOCABULARY;
   const unresolved: LineResult = {
     line,
     finding: "ok",
@@ -43,7 +47,7 @@ export function classifyLine(input: LineToClassify, rules: ClassificationRules):
       ...unresolved,
       finding: "duplicate",
       disposition: "review",
-      explanation: "Same policy, transaction and amounts as an earlier line on this statement."
+      explanation: `Same ${words.item}, transaction and amounts as an earlier line on this statement.`
     };
   }
 
@@ -53,7 +57,7 @@ export function classifyLine(input: LineToClassify, rules: ClassificationRules):
       ...unresolved,
       finding: "ambiguous_match",
       disposition: "review",
-      explanation: `Matches ${match.candidates.length} policies by ${describeMethod(match.method)}: ${numbers}.`
+      explanation: `Matches ${match.candidates.length} ${words.items} by ${describeMethod(match.method, words)}: ${numbers}.`
     };
   }
 
@@ -62,7 +66,7 @@ export function classifyLine(input: LineToClassify, rules: ClassificationRules):
       ...unresolved,
       finding: "unmatched",
       disposition: "review",
-      explanation: "No policy in the book has this policy number, or this insured and effective date."
+      explanation: `No ${words.item} in the book has this ${words.item} number, or this ${words.customer} and ${words.date}.`
     };
   }
 
@@ -85,7 +89,7 @@ export function classifyLine(input: LineToClassify, rules: ClassificationRules):
       ...matched,
       finding: "no_split_rule",
       disposition: "review",
-      explanation: `No single split rule for agency ${policy.agencyId} ${policy.product} on ${policy.effectiveDate}.`
+      explanation: `No single split rule for ${words.partner} ${policy.agencyId} ${policy.product} on ${policy.effectiveDate}.`
     };
   }
 
@@ -102,7 +106,7 @@ export function classifyLine(input: LineToClassify, rules: ClassificationRules):
         disposition: "clear",
         expectedCents: expected,
         varianceCents: variance,
-        explanation: `Cancellation chargeback at ${formatRate(rate.rateBps)}.`
+        explanation: `${capitalized(words.reversal)} at ${formatRate(rate.rateBps)}.`
       };
     }
     return {
@@ -125,8 +129,8 @@ export function classifyLine(input: LineToClassify, rules: ClassificationRules):
       expectedCents: expected,
       varianceCents: line.commissionCents - expected,
       explanation:
-        `Carrier reports premium ${formatMoney(line.premiumCents)} but the book has ` +
-        `${formatMoney(policy.premiumCents)}. Either the book or the carrier is out of date.`
+        `${capitalized(words.counterparty)} reports ${words.amount} ${formatMoney(line.premiumCents)} but the book has ` +
+        `${formatMoney(policy.premiumCents)}. Either the book or the ${words.counterparty} is out of date.`
     };
   }
 
@@ -181,6 +185,6 @@ function describeRateGap(line: StatementLine, rate: RateRule, expected: Cents): 
   return `${direction}: the rate in effect is ${formatRate(rate.rateBps)}, since ${rate.effectiveFrom}.`;
 }
 
-function describeMethod(method: MatchMethod): string {
-  return method === "policy_number" ? "policy number" : "insured and effective date";
+function describeMethod(method: MatchMethod, words: Vocabulary): string {
+  return method === "policy_number" ? `${words.item} number` : `${words.customer} and ${words.date}`;
 }

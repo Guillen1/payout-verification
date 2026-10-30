@@ -17,14 +17,14 @@ export interface CarrierScenario {
   missingPolicyNumbers: string[];
 }
 
-interface ScenarioInput {
+export interface ScenarioInput {
   makePolicy: PolicyMaker;
   rates: readonly RateRule[];
   period: Period;
 }
 
-const REGULAR_POLICIES = 26;
-const PRIOR_PERIOD_POLICIES = 10;
+export const REGULAR_POLICIES = 26;
+export const PRIOR_PERIOD_POLICIES = 10;
 
 /**
  * Northwind raised its auto new-business rate on the first of the month but paid two policies at
@@ -119,11 +119,11 @@ export function harborPineScenario({ makePolicy, rates, period }: ScenarioInput)
   };
 }
 
-function paidCorrectly(policy: Policy, rates: readonly RateRule[]): PlannedLine {
+export function paidCorrectly(policy: Policy, rates: readonly RateRule[]): PlannedLine {
   return paidAtRate(policy, rateOn(rates, policy, policy.effectiveDate), "ok");
 }
 
-function paidAtRate(policy: Policy, rateBps: number, finding: PlannedLine["expected"]["finding"]): PlannedLine {
+export function paidAtRate(policy: Policy, rateBps: number, finding: PlannedLine["expected"]["finding"]): PlannedLine {
   return {
     policy,
     showPolicyNumber: true,
@@ -136,7 +136,7 @@ function paidAtRate(policy: Policy, rateBps: number, finding: PlannedLine["expec
 }
 
 /** The carrier takes back commission on the unearned half of a cancelled policy's premium. */
-function chargeback(policy: Policy, rates: readonly RateRule[]): PlannedLine {
+export function chargeback(policy: Policy, rates: readonly RateRule[]): PlannedLine {
   const rateBps = rateOn(rates, policy, policy.effectiveDate);
   const returnedPremium = -Math.round(policy.premiumCents / 2);
   return {
@@ -151,7 +151,7 @@ function chargeback(policy: Policy, rates: readonly RateRule[]): PlannedLine {
 }
 
 /** Carriers sort by effective date, then policy number. A duplicate stays right after its original. */
-function inStatementOrder(lines: PlannedLine[]): PlannedLine[] {
+export function inStatementOrder(lines: PlannedLine[]): PlannedLine[] {
   return lines
     .map((line, index) => ({ line, index }))
     .sort(
@@ -163,7 +163,7 @@ function inStatementOrder(lines: PlannedLine[]): PlannedLine[] {
     .map(({ line }) => line);
 }
 
-function lastDayOf(period: Period): string {
+export function lastDayOf(period: Period): string {
   const [year, month] = period.split("-").map(Number) as [number, number];
   return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
 }

@@ -1,0 +1,44 @@
+# A group of beauty brands that sells to retailers. Each retailer pays the group's invoices net of
+# the allowances in its trade terms and sends a remittance advice saying what it paid. The group
+# checks every remittance against its own invoices and terms. Every name, rate and amount here is
+# invented.
+#
+# The engine is the agency network's, unchanged. Its words map like this:
+#   carrier -> retailer         commission statement -> remittance advice
+#   policy  -> invoice          premium -> invoice amount
+#   agency  -> brand            commission rate -> share of the invoice the terms say is paid
+#   new / renewal terms -> a new item's first order / a reorder
+id: brand-group
+name: Lumen Beauty Group (synthetic)
+lineToleranceCents: 1
+
+vocabulary:
+  counterparty: retailer
+  counterparties: retailers
+  statement: remittance advice
+  payment: payment
+  payments: remittances
+  item: invoice
+  items: invoices
+  customer: store
+  date: invoice date
+  reversal: return credit
+  book: invoice ledger
+  amount: invoice amount
+  partner: brand
+  partners: brands
+  organization: the group
+  rates: trade terms
+  disputeDesk: accounts payable
+  documentForModel: a retailer's remittance advice to a vendor
+
+carriers:
+  - id: brightline
+    name: Brightline Mart
+    format: brightline-csv
+  - id: maple-main
+    name: Maple & Main Pharmacy
+    format: maple-main-csv
+  - id: coastal
+    name: Coastal Beauty Supply
+    format: coastal-pdf

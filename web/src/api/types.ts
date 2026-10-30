@@ -168,8 +168,31 @@ export interface HealthView {
 
 export type Target = { kind: "carrier"; period: string; carrierId: string } | { kind: "bonus"; programId: string };
 
+/** The tenant's words for the same money flow: carriers and policies, or retailers and invoices. */
+export interface Words {
+  counterparty: string;
+  counterparties: string;
+  statement: string;
+  payment: string;
+  payments: string;
+  item: string;
+  items: string;
+  customer: string;
+  date: string;
+  reversal: string;
+  book: string;
+  amount: string;
+  partner: string;
+  partners: string;
+  organization: string;
+  rates: string;
+  disputeDesk: string;
+  documentForModel: string;
+}
+
 export interface OverviewView {
   tenantName: string;
+  words: Words;
   period: string | null;
   foundCents: number;
   found: { target: Target; carrierName: string; subject: string; cents: number; reasons: string[] }[];

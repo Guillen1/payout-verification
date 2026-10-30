@@ -4,6 +4,7 @@ import { stringify as toYaml } from "yaml";
 import { z } from "zod";
 import type { Period } from "../../../reconciliation/domain/dates";
 import { tieOut } from "../../../reconciliation/domain/tie-out";
+import type { Vocabulary } from "../../../reconciliation/domain/vocabulary";
 import { ModelAbstractClient } from "../../../../libs/model-client/contract/model.abstract-client";
 import type { ModelUsage } from "../../../../libs/model-client/contract/model.models";
 import { extractCsvStatement } from "../../domain/csv-extractor";
@@ -50,11 +51,12 @@ export class FormatProposalService {
     fileName: string;
     content: string;
     period: Period;
+    vocabulary: Vocabulary;
   }): Promise<{ proposal: FormatProposal; usage: ModelUsage }> {
     const answer = await this.model.ask({
       task: PROPOSE_FORMAT_TASK,
       promptVersion: PROMPT_VERSION,
-      instructions: INSTRUCTIONS,
+      instructions: instructionsFor(input.vocabulary),
       inputs: [
         { type: "text", text: `Current mapping:\n\n${toYaml(input.current)}` },
         { type: "text", text: `New file, header and first rows:\n\n${sampleOf(input.content, SAMPLE_ROWS)}` }
@@ -130,7 +132,10 @@ function sampleOf(content: string, rows: number): string {
     .join("\n");
 }
 
-const INSTRUCTIONS = `A carrier changed the layout of its commission statement file, so the file no longer matches the mapping used to read it. Propose an updated mapping.
+/** With the default vocabulary the text is the agency network's. */
+const instructionsFor = (
+  words: Vocabulary
+) => `A ${words.counterparty} changed the layout of its ${words.statement} file, so the file no longer matches the mapping used to read it. Propose an updated mapping.
 
 You get the current mapping and the new file's header row with its first rows. For each field under columns and totalRow, name the column in the new file that holds the same information. Use column names exactly as they appear in the new header row. Fields whose column did not change keep their current value.
 

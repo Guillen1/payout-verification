@@ -64,6 +64,40 @@ held carrier shows the model's proposed fix with an approve button, right where 
 To work on it, run `pnpm admin:api` (the API on port 3000, restarting on change) and `pnpm --filter web dev`
 (the page on Vite, forwarding `/api`).
 
+## A second business on the same code
+
+```sh
+pnpm demo:seed:brands   # a beauty brand group, three retailers' remittances (two CSV, one PDF), into data/brand-group/
+pnpm admin:brands       # the same admin for that business at http://localhost:3001
+```
+
+A consumer brand has the same problem in a retailer's clothes. A retailer pays the brand's invoices net
+of the allowances in its trade terms and sends a remittance advice. Someone has to check every line
+was paid at the agreed terms, notice the invoices that were never paid, and chase the rest. The demo
+tenant in `tenants/brand-group/` is a synthetic group of beauty brands selling to three retailers.
+
+| Agency network               | Brand group                                      |
+| ---------------------------- | ------------------------------------------------ |
+| Carrier commission statement | Retailer remittance advice                       |
+| Policy book                  | Invoice ledger                                   |
+| Commission rate              | Share of the invoice the trade terms say is paid |
+| Agency                       | Brand                                            |
+| New business or renewal      | A new item's first order or a reorder            |
+
+It runs on the same engine, with only its own tenant directory: config, rates, layouts for each
+retailer, and the words people and the model read (`vocabulary` in `tenant.yaml`). Claude reads the
+retailer's printed remittance with the same prompt, told what document it is and what each field
+means. The end-to-end tests run both businesses on three seeds each, and the evals score the reading of
+both kinds of PDF.
+
+| The brand group's overview                                           | A retailer's lines that need a person                                   |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| ![The brand group's overview](docs/images/admin-brands-overview.png) | ![A retailer's remittance lines](docs/images/admin-brands-retailer.png) |
+
+What the demo leaves out, and a real brand would need: deduction reason codes and debit memos (a
+retailer's own explanation of each short-pay), promotions accrued against retailer claims, and a
+connection to the brand's ERP. Those are new rules and adapters, not a new system.
+
 ## What it finds
 
 The seeded period plants one of each problem a real close runs into:
@@ -183,6 +217,7 @@ A NestJS command-line app laid out by module: each one has `domain/` (plain func
 | `src/modules/demo/`                           | The seeded synthetic data generator (Faker), including the PDF statement and its answer key.               |
 | `src/modules/evals/`                          | Measures the real model against the answer key, with floors.                                               |
 | `tenants/agency-network/`                     | The demo tenant: carriers, agencies, rates, splits, carrier formats and bonus programs.                    |
+| `tenants/brand-group/`                        | The second tenant: a beauty brand group checking retailer remittances, with config only.                   |
 | `recordings/`                                 | Recorded model answers, so the demo and CI run without a key.                                              |
 | `docs/design.md`                              | The design: goals, architecture, controls, monitoring and roadmap.                                         |
 | `web/`                                        | The admin: React, Vite, Tailwind with shadcn/ui components, TanStack Query.                                |
@@ -205,6 +240,6 @@ See `docs/design.md` section 18 for detail.
 - [ ] **4. Pipeline on Postgres.** Persisted runs, review queue and audit log.
 - [ ] **5. Evals in CI and a fault generator.**
 - [ ] **6. Monitoring.** Layout drift, variance control charts, silent carriers, kill switches.
-- [ ] **7. A second tenant.** Retailer deductions for a consumer brand, with config only.
+- [x] **7. A second tenant.** Retailer remittances for a beauty brand group, on the same engine.
 - [ ] **8. Production adapters.**
 - [ ] **9. Runbook and decision records.**

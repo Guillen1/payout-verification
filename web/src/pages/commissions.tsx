@@ -7,12 +7,14 @@ import { ErrorState, Loading, NotRunYet, RunButton } from "@/components/states";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { money, periodName } from "@/lib/format";
+import { useWords } from "@/lib/words";
 
 /** One month of carrier statements: what each paid and what it still owes. */
 export function CommissionsPage() {
   const { period = "" } = useParams();
   const { data: view, error, isLoading } = usePeriod(period);
   const run = useRunPeriod();
+  const words = useWords();
   const runPeriod = () => run.mutate(period);
 
   if (isLoading) return <Loading />;
@@ -24,9 +26,9 @@ export function CommissionsPage() {
   return (
     <>
       <PageHeader
-        eyebrow={`${periodName(view.period)} commissions`}
+        eyebrow={`${periodName(view.period)} ${words.payments}`}
         title={<span className="tabular text-4xl">{money(view.totals.owedCents)} owed</span>}
-        description={`of ${money(view.totals.paidCents)} paid by ${view.carriers.length} carriers`}
+        description={`of ${money(view.totals.paidCents)} paid by ${view.carriers.length} ${words.counterparties}`}
         actions={<RunButton onRun={runPeriod} running={run.isPending} label="Run again" />}
       />
       <Card className="divide-y">

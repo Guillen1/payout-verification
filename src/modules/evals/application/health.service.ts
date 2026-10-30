@@ -45,7 +45,7 @@ export class HealthService {
     );
 
     return {
-      evals: await readEvalSummary(paths.out),
+      evals: await readEvalSummary(paths.evals),
       latestPeriod: latest,
       modelUse: groupCalls([...(period?.modelCalls ?? []), ...bonusCalls.flat()])
     };

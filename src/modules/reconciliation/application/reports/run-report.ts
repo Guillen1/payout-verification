@@ -1,6 +1,7 @@
 import { payoutsByAgency } from "../../domain/allocation";
 import type { LineResult } from "../../domain/line-result";
 import { formatMoney } from "../../domain/money";
+import { capitalized, withoutArticle, type Vocabulary } from "../../domain/vocabulary";
 import type { CarrierOutcome, PeriodResult } from "../services/reconcile-period.service";
 import type { Tenant } from "../../infrastructure/tenant-files";
 import { describeHold } from "../views/period-view";
@@ -12,20 +13,27 @@ import { allocationsOf } from "./payout-files";
  */
 export function renderRunReport(result: PeriodResult, tenant: Tenant): string {
   const agencyNames = new Map(tenant.agencies.map(agency => [agency.agencyId, agency.name]));
+  const words = tenant.vocabulary;
   const sections = [
-    `# Commission reconciliation: ${tenant.name}, ${result.period}`,
-    summaryTable(result),
+    `# ${capitalized(words.payment)} reconciliation: ${tenant.name}, ${result.period}`,
+    summaryTable(result, words),
     notProcessedSection(result),
-    linesSection(result, "dispute", "Dispute with the carrier", "The money was allocated; the amount is wrong."),
-    linesSection(result, "review", "Review before payout", "This money is held until someone decides."),
-    missingSection(result),
-    payoutSection(result, agencyNames),
+    linesSection(
+      result,
+      words,
+      "dispute",
+      `Dispute with the ${words.counterparty}`,
+      "The money was allocated; the amount is wrong."
+    ),
+    linesSection(result, words, "review", "Review before payout", "This money is held until someone decides."),
+    missingSection(result, words),
+    payoutSection(result, agencyNames, words),
     modelSection(result)
   ];
   return `${sections.filter(Boolean).join("\n\n")}\n`;
 }
 
-function summaryTable(result: PeriodResult): string {
+function summaryTable(result: PeriodResult, words: Vocabulary): string {
   const rows = result.carriers.map(outcome => {
     if (outcome.status !== "processed") return tableRow([outcome.carrier.name, describeStatus(outcome)], 9);
     const reconciliation = outcome.reconciliation;
@@ -49,7 +57,7 @@ function summaryTable(result: PeriodResult): string {
   return [
     "## Summary",
     "",
-    "| Carrier | Status | Lines | Paid | To agencies | To network | Held | Disputed variance | Not received (est.) |",
+    `| ${capitalized(words.counterparty)} | Status | Lines | Paid | To ${words.partners} | To ${withoutArticle(words.organization)} | Held | Disputed variance | Not received (est.) |`,
     "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ...rows
   ].join("\n");
@@ -90,6 +98,7 @@ function modelSection(result: PeriodResult): string {
 
 function linesSection(
   result: PeriodResult,
+  words: Vocabulary,
   disposition: LineResult["disposition"],
   title: string,
   note: string
@@ -117,13 +126,13 @@ function linesSection(
     "",
     note,
     "",
-    "| Carrier | Row | Policy | Finding | Paid | Expected | Detail |",
+    `| ${capitalized(words.counterparty)} | Row | ${capitalized(words.item)} | Finding | Paid | Expected | Detail |`,
     "| --- | ---: | --- | --- | ---: | ---: | --- |",
     ...rows.map(row => `| ${row} |`)
   ].join("\n");
 }
 
-function missingSection(result: PeriodResult): string {
+function missingSection(result: PeriodResult, words: Vocabulary): string {
   const rows = result.carriers.flatMap(outcome =>
     outcome.status === "processed" && outcome.reconciliation.status === "reconciled"
       ? outcome.reconciliation.missing.map(
@@ -135,23 +144,23 @@ function missingSection(result: PeriodResult): string {
   );
   if (rows.length === 0) return "";
   return [
-    "## Commission not received",
+    `## ${capitalized(words.payment)} not received`,
     "",
-    "Policies that took effect this period and appear on no statement line.",
+    `${capitalized(words.items)} that took effect this period and appear on no statement line.`,
     "",
-    "| Carrier | Policy | Agency | Effective | Expected |",
+    `| ${capitalized(words.counterparty)} | ${capitalized(words.item)} | ${capitalized(words.partner)} | Effective | Expected |`,
     "| --- | --- | --- | --- | ---: |",
     ...rows
   ].join("\n");
 }
 
-function payoutSection(result: PeriodResult, agencyNames: Map<string, string>): string {
+function payoutSection(result: PeriodResult, agencyNames: Map<string, string>, words: Vocabulary): string {
   const payouts = payoutsByAgency(allocationsOf(result));
   if (payouts.length === 0) return "";
   return [
-    "## Agency payouts",
+    `## ${capitalized(words.partner)} payouts`,
     "",
-    "| Agency | Lines | Commission | To agency | To network |",
+    `| ${capitalized(words.partner)} | Lines | ${capitalized(words.payment)} | To ${words.partner} | To ${withoutArticle(words.organization)} |`,
     "| --- | ---: | ---: | ---: | ---: |",
     ...payouts.map(
       payout =>

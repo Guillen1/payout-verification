@@ -5,6 +5,7 @@ import type { Period } from "../../../reconciliation/domain/dates";
 import { parseMoney } from "../../../reconciliation/domain/money";
 import { tieOut } from "../../../reconciliation/domain/tie-out";
 import type { StatementLine } from "../../../reconciliation/domain/types";
+import type { Vocabulary } from "../../../reconciliation/domain/vocabulary";
 import { ModelAbstractClient } from "../../../../libs/model-client/contract/model.abstract-client";
 import type { ModelUsage } from "../../../../libs/model-client/contract/model.models";
 import type { ExtractionResult } from "../../domain/extraction-result";
@@ -69,7 +70,7 @@ export class PdfStatementReaderService {
     const answer = await this.model.ask({
       task: READ_PDF_STATEMENT_TASK,
       promptVersion: PROMPT_VERSION,
-      instructions: instructionsFor(input.format),
+      instructions: instructionsFor(input.format, input.vocabulary),
       inputs: [{ type: "pdf", name: basename(input.fileName), data: input.data }],
       schema: StatementTranscriptSchema,
       escalate
@@ -86,7 +87,7 @@ export class PdfStatementReaderService {
   }
 }
 
-type PdfInput = { fileName: string; data: Buffer; period: Period; format: PdfFormat };
+type PdfInput = { fileName: string; data: Buffer; period: Period; format: PdfFormat; vocabulary: Vocabulary };
 
 /** Turns a transcript into a statement. Separate from the model call so it can be tested on its own. */
 export function readTranscript(
@@ -127,16 +128,17 @@ export function readTranscript(
   };
 }
 
-function instructionsFor(format: PdfFormat): string {
+/** The words come from the tenant's vocabulary; with the default vocabulary the text is the agency network's. */
+function instructionsFor(format: PdfFormat, words: Vocabulary): string {
   const notes = format.readingNotes.trim();
-  return `You are transcribing an insurance carrier's commission statement so that code can check it.
+  return `You are transcribing ${words.documentForModel} so that code can check it.
 
-Transcribe; do not interpret. Report every commission line in the order it is printed. Copy policy numbers, insured names, product codes and transaction codes exactly as printed. Do not correct, merge or drop lines that look wrong or repeated: finding those is the next step's job, and it can only find what you report.
+Transcribe; do not interpret. Report every ${words.payment} line in the order it is printed. Copy ${words.item} numbers, insured names, product codes and transaction codes exactly as printed. Do not correct, merge or drop lines that look wrong or repeated: finding those is the next step's job, and it can only find what you report.
 
-- Skip column headers, page subtotals and running totals. They are not commission lines.
-- Report the statement's grand total commission as statementTotal.
+- Skip column headers, page subtotals and running totals. They are not ${words.payment} lines.
+- Report the statement's grand total ${words.payment} as statementTotal.
 - Write dates as YYYY-MM-DD.
 - Write amounts as plain signed decimals such as 1234.56 or -12.30, without currency symbols or thousands separators. Credits and chargebacks are negative.
-- If a line has no policy number, use an empty string.
-- page is the page the line is printed on, starting at 1.${notes ? `\n\nAbout this carrier's layout:\n${notes}` : ""}`;
+- If a line has no ${words.item} number, use an empty string.
+- page is the page the line is printed on, starting at 1.${notes ? `\n\nAbout this ${words.counterparty}'s layout:\n${notes}` : ""}`;
 }

@@ -75,6 +75,55 @@ export function renderBluestemStatement(lines: readonly PlannedLine[]): string {
   ]);
 }
 
+export function renderBrightlineStatement(lines: readonly PlannedLine[]): string {
+  const categories: Record<string, string> = { lash: "Lash", hair: "Hair Care", skin: "Skin Care" };
+  const types: Record<TransactionType, string> = { new: "New Item", renewal: "Reorder", cancellation: "Return" };
+  const plain = (amount: Cents) => (amount / 100).toFixed(2);
+
+  const rows = lines.map(line => [
+    line.showPolicyNumber ? line.policy.policyNumber : "",
+    line.policy.insuredName,
+    categories[line.policy.product],
+    types[line.transactionType],
+    line.policy.effectiveDate,
+    plain(line.premiumCents),
+    `${(line.appliedRateBps / 100).toFixed(2)}%`,
+    plain(line.commissionCents)
+  ]);
+  const total = lines.reduce((sum, line) => sum + line.commissionCents, 0);
+
+  return stringify([
+    ["Invoice #", "Store", "Category", "Type", "Invoice Date", "Invoice Amount", "Net %", "Amount Paid"],
+    ...rows,
+    ["Remittance Total", "", "", "", "", "", "", plain(total)]
+  ]);
+}
+
+export function renderMapleMainStatement(lines: readonly PlannedLine[]): string {
+  const categories: Record<string, string> = { lash: "LS", hair: "HR", skin: "SK" };
+  const types: Record<TransactionType, string> = { new: "NI", renewal: "RO", cancellation: "RT" };
+
+  const rows = lines.map(line => {
+    const [year, month, day] = line.policy.effectiveDate.split("-");
+    return [
+      line.showPolicyNumber ? line.policy.policyNumber.replace("-", "") : "",
+      line.policy.insuredName.toUpperCase(),
+      categories[line.policy.product],
+      types[line.transactionType],
+      `${month}/${day}/${year}`,
+      dollars(line.premiumCents),
+      dollars(line.commissionCents)
+    ];
+  });
+  const total = lines.reduce((sum, line) => sum + line.commissionCents, 0);
+
+  return stringify([
+    ["INV_NO", "STORE_NAME", "CAT_CD", "DOC_TYPE", "INV_DT", "GROSS_AMT", "NET_PAID"],
+    ...rows,
+    ["TOTAL", "", "", "", "", "", dollars(total)]
+  ]);
+}
+
 /** "$1,234.56", or "($1,234.56)" for negatives. */
 function dollars(amount: Cents): string {
   const formatted = (Math.abs(amount) / 100).toLocaleString("en-US", {

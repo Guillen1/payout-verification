@@ -8,17 +8,19 @@ import { ErrorState, Loading } from "@/components/states";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { money, moneyDelta, periodName } from "@/lib/format";
+import { capitalized, useWords, type TenantWords } from "@/lib/words";
 
 /** One carrier's statement: only what needs a person, and how much each item is worth. */
 export function CarrierPage() {
   const { period = "", carrierId = "" } = useParams();
   const { data: view, error, isLoading } = usePeriod(period);
+  const words = useWords();
   const useLetter = (enabled: boolean) => useCommissionLetter(period, carrierId, enabled);
 
   if (isLoading) return <Loading />;
   if (error || !view) return <ErrorState error={error ?? new Error("No data")} />;
   const carrier = view.carriers.find(entry => entry.id === carrierId);
-  if (!carrier) return <ErrorState error={new Error(`No carrier ${carrierId} in ${period}`)} />;
+  if (!carrier) return <ErrorState error={new Error(`No ${carrierId} in ${period}`)} />;
 
   return (
     <div className="flex flex-col gap-8">
@@ -35,7 +37,7 @@ export function CarrierPage() {
             {carrier.state === "processed" && (
               <p className="mt-1 text-muted-foreground">
                 <span className="tabular font-semibold text-critical-ink">{money(carrier.owedCents)} owed</span> ·{" "}
-                {issues(carrier).length} of {carrier.lines.length} lines need a person
+                {issues(carrier, words).length} of {carrier.lines.length} lines need a person
               </p>
             )}
           </div>
@@ -51,7 +53,7 @@ export function CarrierPage() {
           <ApprovalPanel approvalId={`layout:${period}:${carrier.id}`} />
         </>
       ) : (
-        <Issues carrier={carrier} />
+        <Issues carrier={carrier} words={words} />
       )}
     </div>
   );
@@ -66,8 +68,8 @@ interface Issue {
   amount: string;
 }
 
-function Issues({ carrier }: { carrier: CarrierView }) {
-  const rows = issues(carrier);
+function Issues({ carrier, words }: { carrier: CarrierView; words: TenantWords }) {
+  const rows = issues(carrier, words);
   if (rows.length === 0) return <p className="text-muted-foreground">Every line was paid as agreed.</p>;
   return (
     <Card className="divide-y">
@@ -87,14 +89,14 @@ function Issues({ carrier }: { carrier: CarrierView }) {
   );
 }
 
-function issues(carrier: CarrierView): Issue[] {
+function issues(carrier: CarrierView, words: TenantWords): Issue[] {
   const lines: Issue[] = carrier.lines
     .filter(line => line.disposition !== "clear")
     .map(line => ({
       key: `line-${line.row}`,
-      policy: line.policyNumber ?? "No policy number",
+      policy: line.policyNumber ?? `No ${words.item} number`,
       insured: line.insuredName,
-      what: describe(line),
+      what: describe(line, words),
       tone: line.disposition === "dispute" ? "critical" : "warning",
       amount:
         line.disposition === "dispute" && line.varianceCents !== null
@@ -112,22 +114,22 @@ function issues(carrier: CarrierView): Issue[] {
   return [...lines, ...missing];
 }
 
-function describe(line: LineView): string {
+function describe(line: LineView, words: TenantWords): string {
   switch (line.finding) {
     case "rate_variance":
       return (line.varianceCents ?? 0) < 0 ? "Paid below the agreed rate" : "Paid above the agreed rate";
     case "duplicate":
       return "Printed twice";
     case "unmatched":
-      return "Not in the policy book";
+      return `Not in the ${words.book}`;
     case "ambiguous_match":
-      return "Matches more than one policy";
+      return `Matches more than one ${words.item}`;
     case "premium_variance":
-      return "Premium differs from the policy book";
+      return `${capitalized(words.amount)} differs from the ${words.book}`;
     case "no_rate_rule":
       return "No rate on file";
     case "no_split_rule":
-      return "No agency split on file";
+      return `No ${words.partner} split on file`;
     default:
       return line.explanation;
   }

@@ -1,0 +1,21 @@
+# Coastal Beauty Supply sends a printed remittance advice only. A model transcribes it; the codes
+# and values it reads are mapped and checked with the same rules as every other retailer.
+id: coastal-pdf
+version: 1
+carrierId: coastal
+kind: pdf
+products:
+  LASH: lash
+  HAIR: hair
+  SKIN: skin
+transactionTypes:
+  NI: new
+  RO: renewal
+  RTN: cancellation
+readingNotes: |
+  This is a remittance advice, so the fields carry a retailer's meaning: policyNumber is the
+  vendor's invoice number, insuredName is the store, productCode is the category, transactionCode
+  is the document type, effectiveDate is the invoice date, premium is the invoice amount and
+  commission is the amount paid.
+  Returns are printed with a trailing "CR" instead of a minus sign.
+  Each page ends with a "Page subtotal" row. Only the last page has the total remitted.

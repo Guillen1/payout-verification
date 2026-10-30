@@ -23,9 +23,9 @@ export const MEASURE_LABELS: Record<string, string> = {
 };
 
 /** The last eval run, or null if the evals have not been run. */
-export async function readEvalSummary(outDirectory: string): Promise<EvalSummary | null> {
+export async function readEvalSummary(evalsDirectory: string): Promise<EvalSummary | null> {
   try {
-    return JSON.parse(await readFile(join(outDirectory, "evals", "report.json"), "utf8")) as EvalSummary;
+    return JSON.parse(await readFile(join(evalsDirectory, "report.json"), "utf8")) as EvalSummary;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw error;

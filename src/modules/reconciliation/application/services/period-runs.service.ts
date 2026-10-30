@@ -1,7 +1,7 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Injectable } from "@nestjs/common";
-import type { AppPaths } from "../../../../libs/app-paths/app-paths";
+import type { AppPaths, RunPaths } from "../../../../libs/app-paths/app-paths";
 import { renderProposal } from "../../../extraction/application/services/format-proposal.service";
 import { isPeriod } from "../../domain/dates";
 import { loadPolicyBook } from "../../infrastructure/policy-book-file";
@@ -32,7 +32,7 @@ export interface PeriodRun {
 export class PeriodRunsService {
   constructor(private readonly reconcilePeriod: ReconcilePeriodService) {}
 
-  async run(paths: AppPaths, period: string): Promise<PeriodRun> {
+  async run(paths: RunPaths, period: string): Promise<PeriodRun> {
     const tenant = await loadTenant(paths.tenant);
     const result = await this.reconcilePeriod.reconcile({
       tenant,
@@ -58,7 +58,7 @@ export class PeriodRunsService {
         await writeFile(path, renderProposal({ ...outcome.proposal, format: outcome.proposal.format }, verified));
         proposals[outcome.carrier.id] = path;
       }
-      const letter = renderCommissionDispute(outcome, period, tenant.name);
+      const letter = renderCommissionDispute(outcome, period, tenant.name, tenant.vocabulary);
       if (letter) {
         const path = join(outDirectory, "disputes", `${outcome.carrier.id}.md`);
         await writeFile(path, letter);

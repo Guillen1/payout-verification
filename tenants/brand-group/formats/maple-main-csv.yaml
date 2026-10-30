@@ -1,0 +1,35 @@
+# Maple & Main Pharmacy: uppercase codes and store names, US dates, "$1,234.56" amounts with
+# parentheses for returns, and invoice numbers printed without the dash.
+id: maple-main-csv
+version: 1
+carrierId: maple-main
+kind: csv
+headers:
+  - INV_NO
+  - STORE_NAME
+  - CAT_CD
+  - DOC_TYPE
+  - INV_DT
+  - GROSS_AMT
+  - NET_PAID
+columns:
+  policyNumber: INV_NO
+  insuredName: STORE_NAME
+  product: CAT_CD
+  transactionType: DOC_TYPE
+  effectiveDate: INV_DT
+  premium: GROSS_AMT
+  commission: NET_PAID
+dateFormat: MM/DD/YYYY
+products:
+  LS: lash
+  HR: hair
+  SK: skin
+transactionTypes:
+  NI: new
+  RO: renewal
+  RT: cancellation
+totalRow:
+  labelColumn: INV_NO
+  label: TOTAL
+  amountColumn: NET_PAID

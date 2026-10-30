@@ -7,6 +7,7 @@ import { readEvalSummary } from "../../evals/eval-summary";
 import { PeriodRunsService } from "../../reconciliation/application/services/period-runs.service";
 import type { CarrierView, PeriodView } from "../../reconciliation/application/views/period-view";
 import { formatMoney, formatRate, sumCents, type Cents } from "../../reconciliation/domain/money";
+import type { Vocabulary } from "../../reconciliation/domain/vocabulary";
 import { loadTenant } from "../../reconciliation/infrastructure/tenant-files";
 
 export type Target = { kind: "carrier"; period: string; carrierId: string } | { kind: "bonus"; programId: string };
@@ -29,6 +30,8 @@ export interface Waiting {
 
 export interface OverviewView {
   tenantName: string;
+  /** The tenant's words, so every screen speaks its language. */
+  words: Vocabulary;
   period: string | null;
   foundCents: Cents;
   found: MoneyFound[];
@@ -61,7 +64,7 @@ export class OverviewService {
 
     const found: MoneyFound[] = [];
     for (const carrier of period?.carriers ?? []) {
-      if (carrier.owedCents > 0) found.push(commissionFound(period!, carrier));
+      if (carrier.owedCents > 0) found.push(commissionFound(period!, carrier, tenant.vocabulary));
     }
 
     const waiting: Waiting[] = pending.map(item =>
@@ -110,10 +113,11 @@ export class OverviewService {
 
     const processed = (period?.carriers ?? []).filter(carrier => carrier.state === "processed");
     const readings = (period?.modelCalls ?? []).filter(call => call.task === "read-pdf-statement");
-    const evals = await readEvalSummary(paths.out);
+    const evals = await readEvalSummary(paths.evals);
 
     return {
       tenantName: tenant.name,
+      words: tenant.vocabulary,
       period: latest,
       foundCents: sumCents(found.map(entry => entry.cents)),
       found,
@@ -141,19 +145,19 @@ export class OverviewService {
   }
 }
 
-function commissionFound(period: PeriodView, carrier: CarrierView): MoneyFound {
+function commissionFound(period: PeriodView, carrier: CarrierView, words: Vocabulary): MoneyFound {
   const underpaid = carrier.lines.filter(
     line => line.disposition === "dispute" && line.varianceCents !== null && line.varianceCents < 0
   ).length;
   const unpaid = carrier.missing.filter(entry => entry.expectedCents !== null).length;
   const reasons = [
-    underpaid > 0 && `${count(underpaid, "policy", "policies")} paid below the agreed rate`,
-    unpaid > 0 && `${count(unpaid, "policy", "policies")} never paid`
+    underpaid > 0 && `${count(underpaid, words.item, words.items)} paid below the agreed rate`,
+    unpaid > 0 && `${count(unpaid, words.item, words.items)} never paid`
   ].filter((reason): reason is string => typeof reason === "string");
   return {
     target: { kind: "carrier", period: period.period, carrierId: carrier.id },
     carrierName: carrier.name,
-    subject: `${monthName(period.period)} commissions`,
+    subject: `${monthName(period.period)} ${words.payments}`,
     cents: carrier.owedCents,
     reasons
   };

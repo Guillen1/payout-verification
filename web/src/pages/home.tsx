@@ -23,7 +23,9 @@ export function HomePage() {
       <section>
         <p className="text-sm text-muted-foreground">{overview.period && periodName(overview.period)}</p>
         <h1 className="tabular mt-1 text-6xl font-semibold tracking-tight">{money(overview.foundCents)}</h1>
-        <p className="mt-2 text-lg text-muted-foreground">owed to the network, found automatically.</p>
+        <p className="mt-2 text-lg text-muted-foreground">
+          owed to {overview.words.organization}, found automatically.
+        </p>
       </section>
 
       {overview.waiting.map(item => (

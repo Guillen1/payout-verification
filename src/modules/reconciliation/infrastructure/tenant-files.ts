@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 import type { RateRule, SplitRule } from "../domain/types";
+import { VocabularySchema, type Vocabulary } from "../domain/vocabulary";
 import { SourceFormatSchema, type SourceFormat } from "../../extraction/domain/source-format";
 import { parseCsvRecords } from "./csv-records";
 
@@ -23,6 +24,7 @@ export interface Tenant {
   id: string;
   name: string;
   lineToleranceCents: number;
+  vocabulary: Vocabulary;
   carriers: CarrierConfig[];
   agencies: Agency[];
   rateRules: RateRule[];
@@ -33,6 +35,7 @@ const TenantFileSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   lineToleranceCents: z.number().int().nonnegative(),
+  vocabulary: VocabularySchema.default(VocabularySchema.parse({})),
   carriers: z.array(z.object({ id: z.string().min(1), name: z.string().min(1), format: z.string().min(1) })).min(1)
 });
 
@@ -81,7 +84,7 @@ const SplitRow = z
 /**
  * Loads a tenant directory:
  *
- *   tenant.yaml        carriers and settings
+ *   tenant.yaml        carriers, settings and the tenant's words for things
  *   agencies.csv       agencies in the network
  *   rates.csv          effective-dated commission rates by carrier, product and term
  *   splits.csv         effective-dated agency shares
@@ -106,6 +109,7 @@ export async function loadTenant(directory: string): Promise<Tenant> {
     id: settings.id,
     name: settings.name,
     lineToleranceCents: settings.lineToleranceCents,
+    vocabulary: settings.vocabulary,
     carriers,
     agencies: parseCsvRecords(await read("agencies.csv"), AgencyRow, "agencies.csv"),
     rateRules: parseCsvRecords(await read("rates.csv"), RateRow, "rates.csv"),

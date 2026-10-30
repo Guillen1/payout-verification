@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ScriptedModelClient } from "../../../../libs/model-client/testing/scripted-model.client";
 import { FormatProposalService, renderProposal } from "../../application/services/format-proposal.service";
 import type { CsvFormat } from "../../domain/source-format";
+import { DEFAULT_VOCABULARY } from "../../../reconciliation/domain/vocabulary";
 
 const current: CsvFormat = {
   id: "test-csv",
@@ -43,7 +44,8 @@ async function propose(model: ScriptedModelClient) {
     current,
     fileName: "bluestem.csv",
     content: changedFile,
-    period: "2026-09"
+    period: "2026-09",
+    vocabulary: DEFAULT_VOCABULARY
   });
   return proposal;
 }

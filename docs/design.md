@@ -1,6 +1,6 @@
 # Payout Verification for Agency Networks: Design Doc
 
-Status: Draft v0.2, 2026-10-28. Milestone 1 implemented; see the README for what runs today. Author: Jose Guillen.
+Status: Draft v0.3, 2026-10-30. Milestones 1, 2, 3 and 7 implemented, with a local admin; see the README for what runs today. Author: Jose Guillen.
 Reviewers: AlphaX engineering (architecture review).
 
 ---
@@ -376,6 +376,19 @@ tenants/
 | Bonus program                | Promo accrual vs retailer claim                       |
 | Payout to agency             | Dispute packet and recovery                           |
 
+**What was built (milestone 7).** `tenants/brand-group/` is a synthetic beauty brand group whose
+three retailers pay its invoices net of their trade terms and send remittances, one of them as a
+printed PDF. It runs on the same engine with its own directory and nothing else. Building it took one
+change to the code, made once for every future tenant: the words people and the model read come from
+the tenant (`vocabulary` in `tenant.yaml`), so the admin, the report, the dispute letters and the
+prompts say retailer, invoice and remittance there. The agency network's words are the defaults, which
+keeps its prompts byte-identical and its recorded answers valid. The end-to-end tests run both
+tenants against their answer keys, and the evals score the model reading both kinds of PDF.
+
+The demo is the core of the mapping above, not all of it. A remittance short-pay is checked against
+the terms the same way a commission is checked against a rate; deduction reason codes, debit memos
+and promotion accruals are not modeled. They are new rules on the same pipeline.
+
 **What does not port, and is said out loud:** the system-of-record adapter, the matching keys,
 the reason-code taxonomy, the labeled set (which has to be rebuilt with that company's
 operators), the data agreement, and who owns the code at exit.
@@ -483,7 +496,8 @@ first so that a short run still shows the model doing the reading the work depen
 5. **Evals in CI and a fault generator.** Replay evals gate every push; a separate generator plants
    faults the pipeline author does not see.
 6. **Monitoring.** Layout drift, control charts on variance, silent carriers, kill switches.
-7. **Second tenant.** Retailer deductions config plus labels, with no code changes.
+7. **Second tenant.** Retailer deductions config plus labels, with no code changes. Done for
+   remittances against trade terms; the one code change was moving the words into tenant config.
 8. **Production adapters** (S3, Slack): implemented against contract tests, not deployed.
 9. **Runbook and decision records.**
 

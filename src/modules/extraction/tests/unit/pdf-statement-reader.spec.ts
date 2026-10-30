@@ -6,6 +6,7 @@ import {
   type StatementTranscript
 } from "../../application/services/pdf-statement-reader.service";
 import type { PdfFormat } from "../../domain/source-format";
+import { DEFAULT_VOCABULARY } from "../../../reconciliation/domain/vocabulary";
 
 const format: PdfFormat = {
   id: "test-pdf",
@@ -43,7 +44,7 @@ const transcript: StatementTranscript = {
   ]
 };
 
-const input = { fileName: "harbor-pine.pdf", period: "2026-09", format };
+const input = { fileName: "harbor-pine.pdf", period: "2026-09", format, vocabulary: DEFAULT_VOCABULARY };
 
 describe("readTranscript", () => {
   it("maps codes and parses values with the carrier's format", () => {

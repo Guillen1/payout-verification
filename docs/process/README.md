@@ -26,6 +26,9 @@ word for it.**
 | 2026-10-28 | Design                                        | `docs/design.md`, reviewed as a system design                                |
 | 2026-10-28 | Build, milestone 1                            | Domain core, CSV extraction, synthetic data with answer key, demo CLI        |
 | 2026-10-29 | Build, milestone 2                            | Claude reads PDF statements and proposes mappings for changed layouts; evals |
+| 2026-10-29 | Build, milestone 3                            | Bonus agreements read into rules, expected bonus by code, dispute letters    |
+| 2026-10-30 | Admin                                         | A local admin over the results, made minimal for stakeholders                |
+| 2026-10-30 | Build, milestone 7                            | A second business, a brand group checking retailer remittances, same engine  |
 
 ## Phase 1: Understand the assignment and scan the portfolio
 
@@ -164,6 +167,7 @@ The build follows the milestones in the design doc. Each milestone is logged in
 | The bonus answer key reused the domain's rounding function it was meant to check                                            | Code review; the generator now uses its own math                                       |
 | A malformed CSV was reported as a model outage                                                                              | Code review; reproduced on a copy of the data, then fixed and tested                   |
 | Proposed a plain-HTML admin with no framework, optimizing for less code over how it looks                                   | The human pointed out reviewers see it first; rebuilt on React, Tailwind and shadcn/ui |
+| A dispute letter built its date phrase by trimming a word and printed "invoice 2026-09-10"                                  | Read the rendered letter for the second tenant; the phrase now uses the full word      |
 
 ## Rules followed throughout
 

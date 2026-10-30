@@ -20,6 +20,8 @@ import { MEASURE_LABELS, type EvalSummary } from "../eval-summary";
 
 const PERIOD = "2026-09";
 const SEEDS = [42, 7, 2026];
+/** Every demo tenant's PDF statement is read; the layout and agreement suites use the agency network. */
+const TENANTS = ["agency-network", "brand-group"];
 const FLOORS = { fieldAccuracy: 0.99, tieOutRate: 1, findingAccuracy: 1, proposalsCorrect: 1, bonusRulesCorrect: 1 };
 type Measure = keyof typeof FLOORS;
 
@@ -41,10 +43,11 @@ export class EvalCli extends CommandRunner {
   }
 
   async run(): Promise<void> {
-    const tenant = await loadTenant("tenants/agency-network");
+    const tenants = await Promise.all(TENANTS.map(id => loadTenant(`tenants/${id}`)));
+    const tenant = tenants[0]!;
     const calls: ModelUsage[] = [];
 
-    const reading = await this.evaluatePdfReading(tenant, calls);
+    const reading = await this.evaluatePdfReading(tenants, calls);
     const proposals = await this.evaluateProposals(tenant, calls);
     const agreements = await this.evaluateAgreements(tenant, calls);
 
@@ -62,10 +65,10 @@ export class EvalCli extends CommandRunner {
       "",
       "## Reading PDF statements",
       "",
-      `Retried on the escalation model: ${reading.escalations} of ${SEEDS.length}. A rising count means the default model is struggling.`,
+      `Retried on the escalation model: ${reading.escalations} of ${reading.statements}. A rising count means the default model is struggling.`,
       "",
-      "| Seed | Read by | Fields read correctly | Ties out | Findings correct |",
-      "| ---: | --- | ---: | --- | ---: |",
+      "| Statement | Seed | Read by | Fields read correctly | Ties out | Findings correct |",
+      "| --- | ---: | --- | ---: | --- | ---: |",
       ...reading.rows,
       "",
       "## Proposing mappings for changed layouts",
@@ -101,7 +104,7 @@ export class EvalCli extends CommandRunner {
         floor: FLOORS[measure]
       })),
       escalations: reading.escalations,
-      statements: SEEDS.length,
+      statements: reading.statements,
       calls: calls.length,
       replayed: calls.filter(call => call.source === "recording").length,
       costUsd: costOfLiveCalls(calls)
@@ -114,16 +117,21 @@ export class EvalCli extends CommandRunner {
     process.exitCode = passed ? 0 : 1;
   }
 
-  /** Field-level reading accuracy, tie-out and end-to-end findings on one PDF statement per seed. */
-  private async evaluatePdfReading(tenant: Tenant, calls: ModelUsage[]) {
-    const carrier = tenant.carriers.find(entry => entry.format.kind === "pdf");
-    if (!carrier || carrier.format.kind !== "pdf") throw new Error("The demo tenant has no PDF carrier");
-
+  /**
+   * Field-level reading accuracy, tie-out and end-to-end findings on each tenant's PDF statement,
+   * once per seed: an insurance carrier's commission statement and a retailer's remittance advice.
+   */
+  private async evaluatePdfReading(tenants: readonly Tenant[], calls: ModelUsage[]) {
     const rows: string[] = [];
     const totals = { fieldsRight: 0, fields: 0, tiedOut: 0, findingsRight: 0, findings: 0 };
     let escalations = 0;
+    let statements = 0;
 
-    for (const seed of SEEDS) {
+    for (const { tenant, seed } of tenants.flatMap(tenant => SEEDS.map(seed => ({ tenant, seed })))) {
+      const carrier = tenant.carriers.find(entry => entry.format.kind === "pdf");
+      if (!carrier || carrier.format.kind !== "pdf") throw new Error(`${tenant.id} has no PDF statement`);
+      statements += 1;
+
       const demo = await generateDemoData({ tenant, period: PERIOD, seed });
       const statement = demo.statements.find(entry => entry.carrierId === carrier.id)!;
       const labels = demo.labels.carriers[carrier.id]!;
@@ -132,7 +140,8 @@ export class EvalCli extends CommandRunner {
         fileName: statement.fileName,
         data: Buffer.from(statement.content),
         period: PERIOD,
-        format: carrier.format
+        format: carrier.format,
+        vocabulary: tenant.vocabulary
       });
       calls.push(...result.modelCalls);
       const readBy = result.modelCalls.at(-1)!.model;
@@ -145,7 +154,8 @@ export class EvalCli extends CommandRunner {
         const reconciliation = reconcileStatement(result.extraction.statement, new PolicyIndex(demo.policies), {
           rateRules: tenant.rateRules,
           splitRules: tenant.splitRules,
-          lineToleranceCents: tenant.lineToleranceCents
+          lineToleranceCents: tenant.lineToleranceCents,
+          words: tenant.vocabulary
         });
         tiesOut = reconciliation.status === "reconciled";
         if (reconciliation.status === "reconciled") {
@@ -161,16 +171,17 @@ export class EvalCli extends CommandRunner {
       totals.findingsRight += findingsRight;
       totals.findings += labels.lines.length;
       rows.push(
-        `| ${seed} | ${readBy} | ${fields.right}/${fields.total} | ${tiesOut ? "yes" : "no"} | ${findingsRight}/${labels.lines.length} |`
+        `| ${carrier.name} | ${seed} | ${readBy} | ${fields.right}/${fields.total} | ${tiesOut ? "yes" : "no"} | ${findingsRight}/${labels.lines.length} |`
       );
     }
 
     return {
       rows,
       escalations,
+      statements,
       scores: {
         fieldAccuracy: totals.fieldsRight / totals.fields,
-        tieOutRate: totals.tiedOut / SEEDS.length,
+        tieOutRate: totals.tiedOut / statements,
         findingAccuracy: totals.findingsRight / totals.findings
       }
     };
@@ -191,7 +202,8 @@ export class EvalCli extends CommandRunner {
         current: carrier.format,
         fileName: `${carrier.id}.csv`,
         content: driftCase.change(original),
-        period: PERIOD
+        period: PERIOD,
+        vocabulary: tenant.vocabulary
       });
       calls.push(usage);
 

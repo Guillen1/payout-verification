@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { Command, CommandRunner, Option } from "nest-commander";
 import { isPeriod } from "../../reconciliation/domain/dates";
@@ -14,9 +14,6 @@ interface SeedOptions {
   period: string;
   seed: number;
 }
-
-/** The bonus programs the demo generates data for. */
-const DEMO_BONUS_PROGRAMS = ["northwind-2025"];
 
 /** `seed`: writes a synthetic policy book, carrier statements, bonus files and their answer keys. */
 @Command({ name: "seed", description: "Write one period of synthetic demo data" })
@@ -38,7 +35,7 @@ export class SeedCli extends CommandRunner {
     }
     await write(join(options.data, "labels", `${options.period}.json`), `${JSON.stringify(demo.labels, null, 2)}\n`);
 
-    for (const programId of DEMO_BONUS_PROGRAMS) {
+    for (const programId of await bonusProgramIds(options.tenant)) {
       const { program } = await loadBonusProgram(options.tenant, programId);
       const carrierName = tenant.carriers.find(carrier => carrier.id === program.carrierId)?.name ?? program.carrierId;
       const bonus = await generateBonusDemo({ tenant, program, carrierName, seed: options.seed });
@@ -77,4 +74,9 @@ export class SeedCli extends CommandRunner {
   parseData(value: string): string {
     return value;
   }
+}
+
+/** The tenant's bonus programs, one directory each under bonus/. A tenant may have none. */
+async function bonusProgramIds(tenantDirectory: string): Promise<string[]> {
+  return (await readdir(join(tenantDirectory, "bonus")).catch((): string[] => [])).sort();
 }

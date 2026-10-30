@@ -47,22 +47,38 @@ async function runPeriod(demo: DemoData, tenant: Tenant, model: ModelAbstractCli
   });
 }
 
-describe.each([42, 7, 2026])("demo period with seed %i", seed => {
+/*
+ * The second tenant is a beauty brand group checking retailer remittances. It runs on the same
+ * code with only its own tenant directory, which is the claim these cases hold the code to.
+ */
+const TENANTS = ["agency-network", "brand-group"];
+const CASES = TENANTS.flatMap(tenantId => [42, 7, 2026].map(seed => ({ tenantId, seed })));
+
+describe.each(CASES)("demo period for $tenantId with seed $seed", ({ tenantId, seed }) => {
+  let tenant: Tenant;
   let demo: DemoData;
   let result: PeriodResult;
 
   beforeAll(async () => {
-    const tenant = await loadTenant("tenants/agency-network");
+    tenant = await loadTenant(`tenants/${tenantId}`);
     demo = await generateDemoData({ tenant, period: PERIOD, seed });
     result = await runPeriod(demo, tenant, answerKeyModel(demo.labels));
   });
 
-  it("processes every carrier, including the PDF", () => {
-    expect(result.carriers.map(outcome => [outcome.carrier.id, outcome.status])).toEqual([
-      ["northwind", "processed"],
-      ["bluestem", "processed"],
-      ["harbor-pine", "processed"]
-    ]);
+  it("processes every statement, including the PDF", () => {
+    expect(result.carriers.map(outcome => [outcome.carrier.id, outcome.status])).toEqual(
+      tenant.carriers.map(carrier => [carrier.id, "processed"])
+    );
+  });
+
+  it("explains every line in the tenant's own words", () => {
+    const explanations = result.carriers.flatMap(outcome =>
+      outcome.status === "processed" && outcome.reconciliation.status === "reconciled"
+        ? outcome.reconciliation.lines.map(line => line.explanation)
+        : []
+    );
+    const otherTenantsWords = tenant.vocabulary.item === "policy" ? /invoice|retailer/i : /policy|premium|carrier/i;
+    expect(explanations.filter(text => otherTenantsWords.test(text))).toEqual([]);
   });
 
   it("reaches the expected finding and policy on every line", () => {

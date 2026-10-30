@@ -1,0 +1,36 @@
+# Brightline Mart: one row per invoice, ISO dates, plain amounts with a minus sign for returns,
+# the net share it applied, and a control total on the last row.
+id: brightline-csv
+version: 1
+carrierId: brightline
+kind: csv
+headers:
+  - "Invoice #"
+  - Store
+  - Category
+  - Type
+  - Invoice Date
+  - Invoice Amount
+  - Net %
+  - Amount Paid
+columns:
+  policyNumber: "Invoice #"
+  insuredName: Store
+  product: Category
+  transactionType: Type
+  effectiveDate: Invoice Date
+  premium: Invoice Amount
+  commission: Amount Paid
+dateFormat: YYYY-MM-DD
+products:
+  Lash: lash
+  Hair Care: hair
+  Skin Care: skin
+transactionTypes:
+  New Item: new
+  Reorder: renewal
+  Return: cancellation
+totalRow:
+  labelColumn: "Invoice #"
+  label: Remittance Total
+  amountColumn: Amount Paid

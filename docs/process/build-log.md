@@ -305,3 +305,46 @@ one line of proof. A carrier is its owed amount and the lines that need a person
 label and an amount. A bonus is its owed amount and the two reasons, with the calculation behind
 "Show the calculation". Accuracy is one number and five bars. Navigation moved to a top bar. Charts,
 tables, tabs and the libraries behind them (Recharts, TanStack Table, Radix Tabs) were removed.
+
+## Milestone 7: A second business on the same code (2026-10-30)
+
+**Built**
+
+- A second demo tenant, `tenants/brand-group/`: a synthetic beauty brand group with three brands and
+  three retailers. Each retailer pays invoices net of the allowances in its trade terms and sends a
+  remittance advice: two as CSV in different layouts, one as a printed PDF.
+- The same planted problems in a retailer's clothes: a reorder allowance cut on the first of the month
+  but still taken on two invoices, an invoice never paid, one paid twice, one paid on a lower amount
+  than billed, one the group has no record of, blank invoice numbers, and return credits.
+- The tenant's words in config (`vocabulary` in `tenant.yaml`): who pays, what they send, what each
+  line is paid on, who shares in the money. The admin, the report, the dispute letters, the line
+  explanations and both prompts read them.
+- The generator takes a record profile (products, amounts, names), and the printed-statement renderer
+  takes a layout, so the PDF is a retailer's remittance and not a copy of the carrier's.
+- `pnpm demo:seed:brands` and `pnpm admin:brands`, the same admin on port 3001.
+
+**Decisions**
+
+- Words are config, with the agency network's as the defaults. Its prompts are byte-identical, so every
+  recorded answer still replays; a replayed eval run proved it before anything else changed.
+- Evals measure the model, not a tenant: both admins read the same eval results (`EVALS_DIR`), and the
+  reading suite now includes the retailer PDF.
+- The demo covers remittances against trade terms, not the whole deductions problem. Reason codes,
+  debit memos and promotion accruals are named in the design as new rules, not built.
+
+**AI and human**
+
+- The human said to continue with the recommended order: second tenant first, then a thin slice of
+  monitoring.
+- The AI ran the new retailer PDF through Claude once per seed to record it (three calls, about $0.11).
+
+**Verified**
+
+| Check                                                               | Result                                       |
+| ------------------------------------------------------------------- | -------------------------------------------- |
+| Agency network demo data after the generator change                 | Byte-identical to before                     |
+| Replayed evals before and after the prompt change                   | Pass, every recording found                  |
+| End-to-end, both tenants, three seeds each, against the answer keys | Pass                                         |
+| Evals, reading both kinds of PDF                                    | 6 of 6 statements read field for field, live |
+| Typecheck, lint, format, server and web tests                       | Pass, 170 server and 3 web tests             |
+| Both admins rendered in a headless browser and looked at            | Screenshots in `docs/images/`                |

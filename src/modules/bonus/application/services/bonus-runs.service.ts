@@ -2,7 +2,7 @@ import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Injectable } from "@nestjs/common";
 import { loadTenant, type Tenant } from "../../../reconciliation/infrastructure/tenant-files";
-import type { AppPaths } from "../../../../libs/app-paths/app-paths";
+import type { AppPaths, RunPaths } from "../../../../libs/app-paths/app-paths";
 import { loadBonusProgram, loadProduction } from "../../infrastructure/bonus-files";
 import { renderBonusDispute, renderBonusReport, renderBonusShares, type Names } from "../reports/bonus-report";
 import { toBonusView, type BonusView } from "../views/bonus-view";
@@ -26,7 +26,7 @@ export interface BonusRun {
 export class BonusRunsService {
   constructor(private readonly bonusVerification: BonusVerificationService) {}
 
-  async run(paths: AppPaths, programId: string): Promise<BonusRun> {
+  async run(paths: RunPaths, programId: string): Promise<BonusRun> {
     const tenant = await loadTenant(paths.tenant);
     const { program, approvedRules } = await loadBonusProgram(paths.tenant, await this.knownProgram(paths, programId));
     const names = namesFor(tenant, program.carrierId);
@@ -103,7 +103,7 @@ export class BonusRunsService {
   }
 
   /** Only a program configured for the tenant can be named, so a request cannot reach other files. */
-  private async knownProgram(paths: AppPaths, programId: string): Promise<string> {
+  private async knownProgram(paths: RunPaths, programId: string): Promise<string> {
     const ids = await readdir(join(paths.tenant, "bonus")).catch((): string[] => []);
     if (!ids.includes(programId)) throw new UnknownProgramError(programId);
     return programId;

@@ -1,0 +1,281 @@
+{
+  "task": "read-pdf-statement",
+  "promptVersion": 1,
+  "result": {
+    "status": "answered",
+    "output": {
+      "statementTotal": "127936.26",
+      "lines": [
+        {
+          "page": 1,
+          "policyNumber": "LB 3283670",
+          "insuredName": "Lake Vernice #1098",
+          "productCode": "HAIR",
+          "transactionCode": "RTN",
+          "effectiveDate": "2026-08-25",
+          "premium": "-1027.35",
+          "commission": "-996.53"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3448019",
+          "insuredName": "Utica #9241",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-01",
+          "premium": "5305.31",
+          "commission": "5146.15"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3688021",
+          "insuredName": "Paramount #3727",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-01",
+          "premium": "5883.91",
+          "commission": "5707.39"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3038983",
+          "insuredName": "McCulloughmouth #0691",
+          "productCode": "HAIR",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-02",
+          "premium": "2730.51",
+          "commission": "2648.59"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3314980",
+          "insuredName": "Lake Waltonburgh #8587",
+          "productCode": "HAIR",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-02",
+          "premium": "10353.27",
+          "commission": "9732.07"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3858897",
+          "insuredName": "East Kenny #7816",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-03",
+          "premium": "6392.72",
+          "commission": "6200.94"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3548353",
+          "insuredName": "South Darrion #7983",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-04",
+          "premium": "3513.55",
+          "commission": "3408.14"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3648209",
+          "insuredName": "Port Orange #5273",
+          "productCode": "SKIN",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-04",
+          "premium": "2013.62",
+          "commission": "1892.80"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3302600",
+          "insuredName": "North Little Rock #9694",
+          "productCode": "SKIN",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-07",
+          "premium": "2485.78",
+          "commission": "2411.21"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3101541",
+          "insuredName": "Lombard #1044",
+          "productCode": "LASH",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-08",
+          "premium": "7298.57",
+          "commission": "6860.66"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3825040",
+          "insuredName": "Walterstad #6079",
+          "productCode": "SKIN",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-11",
+          "premium": "2252.69",
+          "commission": "2117.53"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3481155",
+          "insuredName": "Evangelineport #5513",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-12",
+          "premium": "5428.94",
+          "commission": "5266.07"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3482426",
+          "insuredName": "North Maud #0895",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-16",
+          "premium": "4316.01",
+          "commission": "4186.53"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3241947",
+          "insuredName": "Burlington #8980",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-17",
+          "premium": "8419.89",
+          "commission": "8167.29"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3547039",
+          "insuredName": "Mesquite #4667",
+          "productCode": "HAIR",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-17",
+          "premium": "3864.13",
+          "commission": "3748.21"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3175328",
+          "insuredName": "Jazminstead #6415",
+          "productCode": "HAIR",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-18",
+          "premium": "11435.05",
+          "commission": "11092.00"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3479851",
+          "insuredName": "North Kyra #0198",
+          "productCode": "HAIR",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-20",
+          "premium": "3028.07",
+          "commission": "2846.39"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3397020",
+          "insuredName": "East Foreststead #8570",
+          "productCode": "SKIN",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-21",
+          "premium": "1473.72",
+          "commission": "1385.30"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3839634",
+          "insuredName": "Langworthview #5073",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-22",
+          "premium": "2822.44",
+          "commission": "2737.77"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3967093",
+          "insuredName": "Kenosha #1768",
+          "productCode": "SKIN",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-22",
+          "premium": "2288.92",
+          "commission": "2220.25"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3391790",
+          "insuredName": "Lake Clarachester #6160",
+          "productCode": "HAIR",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-23",
+          "premium": "11527.99",
+          "commission": "11182.15"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3271651",
+          "insuredName": "North Enolashire #1607",
+          "productCode": "HAIR",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-24",
+          "premium": "9172.96",
+          "commission": "8897.77"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3968998",
+          "insuredName": "Emmettbury #6827",
+          "productCode": "SKIN",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-24",
+          "premium": "3314.65",
+          "commission": "3215.21"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3112124",
+          "insuredName": "North Morton #1245",
+          "productCode": "SKIN",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-25",
+          "premium": "3275.13",
+          "commission": "3209.63"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3445333",
+          "insuredName": "Macejkovicbury #2123",
+          "productCode": "HAIR",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-29",
+          "premium": "3938.75",
+          "commission": "3702.43"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3554969",
+          "insuredName": "North Adelineville #8631",
+          "productCode": "HAIR",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-29",
+          "premium": "11649.27",
+          "commission": "10950.31"
+        }
+      ]
+    },
+    "usage": {
+      "task": "read-pdf-statement",
+      "model": "claude-sonnet-5-5",
+      "source": "live",
+      "inputTokens": 5599,
+      "outputTokens": 2371,
+      "latencyMs": 12356,
+      "estimatedCostUsd": 0.034908
+    }
+  }
+}

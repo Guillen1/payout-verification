@@ -15,6 +15,7 @@ import { PolicyIndex } from "../../domain/policy-index";
 import { reconcileStatement, type StatementReconciliation } from "../../domain/reconcile-statement";
 import type { Policy, Statement } from "../../domain/types";
 import type { LineProblem } from "../../../extraction/domain/statement-line-reader";
+import type { Vocabulary } from "../../domain/vocabulary";
 import type { CarrierConfig, Tenant } from "../../infrastructure/tenant-files";
 
 /** What reading one carrier's statement file can produce, before reconciliation. */
@@ -64,7 +65,8 @@ export class ReconcilePeriodService {
     const rules = {
       rateRules: tenant.rateRules,
       splitRules: tenant.splitRules,
-      lineToleranceCents: tenant.lineToleranceCents
+      lineToleranceCents: tenant.lineToleranceCents,
+      words: tenant.vocabulary
     };
 
     const carriers: CarrierOutcome[] = [];
@@ -72,7 +74,7 @@ export class ReconcilePeriodService {
 
     for (const carrier of tenant.carriers) {
       const file = join(input.inboxDirectory, period, `${carrier.id}.${fileExtension(carrier.format)}`);
-      const outcome = await this.readStatement(carrier, file, period, modelCalls);
+      const outcome = await this.readStatement(carrier, file, period, tenant.vocabulary, modelCalls);
 
       carriers.push(
         outcome.status === "extracted"
@@ -88,6 +90,7 @@ export class ReconcilePeriodService {
     carrier: CarrierConfig,
     file: string,
     period: Period,
+    vocabulary: Vocabulary,
     modelCalls: ModelUsage[]
   ): Promise<ReadOutcome> {
     const data = await readIfPresent(file);
@@ -96,7 +99,7 @@ export class ReconcilePeriodService {
     const format = carrier.format;
     if (format.kind === "pdf") {
       try {
-        const reading = await this.pdfReader.read({ fileName: file, data, period, format });
+        const reading = await this.pdfReader.read({ fileName: file, data, period, format, vocabulary });
         modelCalls.push(...reading.modelCalls);
         return reading.extraction;
       } catch (error) {
@@ -113,7 +116,8 @@ export class ReconcilePeriodService {
         current: format,
         fileName: file,
         content,
-        period
+        period,
+        vocabulary
       });
       modelCalls.push(usage);
       return { ...extraction, proposal };

@@ -1,11 +1,14 @@
 import type { ReactNode } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
-import { useApprovals, usePeriods } from "@/api/client";
+import { useApprovals, useOverview, usePeriods } from "@/api/client";
+import { capitalized, useWords } from "@/lib/words";
 import { cn } from "@/lib/utils";
 
 export function Layout() {
   const { data: periods } = usePeriods();
   const { data: approvals } = useApprovals();
+  const { data: overview } = useOverview();
+  const words = useWords();
   const { pathname } = useLocation();
   const latest = periods?.find(entry => entry.hasRun)?.period ?? periods?.[0]?.period;
   const waiting = approvals?.length ?? 0;
@@ -21,12 +24,12 @@ export function Layout() {
               {waiting > 0 && <span className="size-1.5 rounded-full bg-warning" aria-label={`${waiting} waiting`} />}
             </Item>
             <Item to={latest ? `/periods/${latest}` : "/"} active={pathname.startsWith("/periods")} end>
-              Commissions
+              {capitalized(words.payments)}
             </Item>
-            <Item to="/bonus">Profit sharing</Item>
+            {(overview?.checked.bonusPrograms ?? 0) > 0 && <Item to="/bonus">Profit sharing</Item>}
             <Item to="/accuracy">AI accuracy</Item>
           </nav>
-          <span className="ml-auto text-xs text-muted-foreground">Synthetic data</span>
+          <span className="ml-auto text-xs text-muted-foreground">{overview?.tenantName}</span>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-8 py-12">
