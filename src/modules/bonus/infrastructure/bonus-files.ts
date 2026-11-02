@@ -16,7 +16,7 @@ import type { ProductionRow } from "../domain/compute-bonus";
 export async function loadBonusProgram(
   tenantDirectory: string,
   programId: string
-): Promise<{ program: BonusProgram; approvedRules: BonusRules | null }> {
+): Promise<{ program: BonusProgram; approvedRules: BonusRules | null; approvedNotes: string[] }> {
   const directory = join(tenantDirectory, "bonus", programId);
   const program = BonusProgramSchema.parse(parseYaml(await readFile(join(directory, "program.yaml"), "utf8")));
   if (program.id !== programId) throw new Error(`${directory}/program.yaml describes program "${program.id}"`);
@@ -26,7 +26,9 @@ export async function loadBonusProgram(
   if (approvedRules && approvedRules.programId !== programId) {
     throw new Error(`${directory}/rules.yaml describes program "${approvedRules.programId}"`);
   }
-  return { program, approvedRules };
+  const approvedNotes =
+    rulesText === null ? [] : z.object({ notes: z.array(z.string()).default([]) }).parse(parseYaml(rulesText)).notes;
+  return { program, approvedRules, approvedNotes };
 }
 
 const ProductionRecord = z

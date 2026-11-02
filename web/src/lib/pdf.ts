@@ -13,14 +13,24 @@ export interface LineMark {
  * Finds a printed line on a page by text printed on it: the occurrence-th printing of that text,
  * since a duplicate line prints the same text again right below the original.
  */
-export async function findLine(
+export function findLine(
   page: PDFPageProxy,
   viewport: PageViewport,
   text: string,
   occurrence: number
 ): Promise<LineMark | null> {
+  return findWhere(page, viewport, printed => printed === text.trim(), occurrence);
+}
+
+/** Finds the occurrence-th piece of text on a page that matches, and where it is printed. */
+export async function findWhere(
+  page: PDFPageProxy,
+  viewport: PageViewport,
+  matches: (printed: string) => boolean,
+  occurrence = 0
+): Promise<LineMark | null> {
   const content = await page.getTextContent();
-  const printed = content.items.filter(entry => "str" in entry && entry.str.trim() === text.trim());
+  const printed = content.items.filter(entry => "str" in entry && matches(entry.str.trim()));
   const item = printed[occurrence] ?? printed[0];
   if (!item || !("transform" in item)) return null;
   const [, baseline] = viewport.convertToViewportPoint(item.transform[4] as number, item.transform[5] as number) as [

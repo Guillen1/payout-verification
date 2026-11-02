@@ -162,9 +162,9 @@ export class ApprovalsService {
     const header = [
       `# Approved by ${approvedBy} on ${approvedOn.slice(0, 10)}, after checking each rule against the clause it cites.`,
       "# Drafted by a model from the agreement document; tied to that document by its SHA-256.",
-      ...item.notes.map(note => `# Note for the record: ${note}`)
+      "# notes: terms the rules cannot express, as the model read them, kept with the approval."
     ];
-    await writeFile(file, `${header.join("\n")}\n${toYaml(item.rules)}`);
+    await writeFile(file, `${header.join("\n")}\n${toYaml({ ...item.rules, notes: item.notes })}`);
     return file;
   }
 }

@@ -67,7 +67,20 @@ export class BonusRunsService {
     const saved = await this.result(paths, programId);
     if (saved === null) return null;
     const names = namesFor(await loadTenant(paths.tenant), saved.result.program.carrierId);
-    return toBonusView(saved.result, names, saved.ranAt);
+    const { approvedRules, approvedNotes } = await loadBonusProgram(paths.tenant, programId);
+    const reading = approvedRules && { rules: approvedRules, notes: approvedNotes };
+    return toBonusView(saved.result, names, saved.ranAt, reading);
+  }
+
+  /** The agreement document the rules were read from, or null if there is none. */
+  async agreement(paths: AppPaths, programId: string): Promise<Buffer | null> {
+    const file = join(paths.data, "bonus", await this.knownProgram(paths, programId), "agreement.pdf");
+    try {
+      return await readFile(file);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+      throw error;
+    }
   }
 
   /** The last run's result as written, or null if the program has not been run. */

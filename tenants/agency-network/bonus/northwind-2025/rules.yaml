@@ -1,5 +1,6 @@
 # Approved rules for Northwind Mutual's 2025 profit-sharing agreement (the demo agreement, seed 42).
-# Drafted by a model, then checked rule by rule against the clause each one cites.
+# Drafted by a model, then checked rule by rule against the clause each one cites. notes: terms the
+# rules cannot express, as the model read them, kept with the approval.
 programId: northwind-2025
 carrierId: northwind
 programYear: 2025
@@ -24,3 +25,8 @@ lossRatioBands:
 maximumBonus:
   cents: 20000000
   clause: "5.3"
+notes:
+  - Business counts only when written under a producer code listed in Schedule A (clause 3.1).
+  - Commercial lines and business placed through any residual market mechanism are excluded (clause 3.2).
+  - Earned Premium and Incurred Losses are valued as of February 28, 2026 (clause 5.2).
+  - No bonus is payable if the agency agreement is terminated before the payment date of March 31, 2026 (clause 6.3).

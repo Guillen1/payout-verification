@@ -107,6 +107,18 @@ export const useBonusPrograms = () =>
 export const useBonus = (programId: string) =>
   useQuery({ queryKey: ["bonus", programId], queryFn: () => request<BonusView>(`/bonus/${programId}`), retry: false });
 
+export const useAgreementPdf = (programId: string, enabled: boolean) =>
+  useQuery({
+    queryKey: ["bonus", programId, "agreement"],
+    queryFn: async () => {
+      const response = await fetch(`/api/bonus/${programId}/agreement`, { headers: tenantHeader() });
+      if (!response.ok) throw new ApiError(response.status, response.statusText);
+      return new Uint8Array(await response.arrayBuffer());
+    },
+    enabled,
+    staleTime: Infinity
+  });
+
 export const useBonusLetter = (programId: string, enabled: boolean) =>
   useQuery({
     queryKey: ["bonus", programId, "letter"],

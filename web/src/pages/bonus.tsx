@@ -1,6 +1,7 @@
 import { Navigate, useParams } from "react-router";
 import { ApiError, useBonus, useBonusLetter, useBonusPrograms, useRunBonus } from "@/api/client";
 import type { BonusView } from "@/api/types";
+import { AgreementReading } from "@/components/agreement-reading";
 import { ApprovalPanel } from "@/components/approval-panel";
 import { BonusPicture } from "@/components/bonus-picture";
 import { LetterDialog } from "@/components/letter-dialog";
@@ -52,6 +53,15 @@ export function BonusPage() {
         description={check && `Paid ${money(check.paidCents)} · the agreement supports ${money(check.expectedCents)}`}
         actions={
           <>
+            {view.reading && (
+              <AgreementReading
+                programId={view.programId}
+                carrierName={view.carrierName}
+                rules={view.reading.rules}
+                notes={view.reading.notes}
+                lossRatioBps={check?.lossRatioBps ?? null}
+              />
+            )}
             {check?.disposition === "dispute" && (
               <LetterDialog title={`Letter to ${view.carrierName}`} useLetter={useLetter} />
             )}

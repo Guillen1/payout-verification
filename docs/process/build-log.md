@@ -487,3 +487,13 @@ The profit-sharing page now ends with who gets the bonus that was paid, like the
 the network's 20% and each agency's share by the premium it sold, from the network's own records. An
 agency the carrier left off its statement is marked and still gets its share, and the page says the
 amount owed is split the same way when it is paid.
+
+### Watching the AI read the agreement (2026-11-01)
+
+The bonus's AI step was invisible: the page showed the result, not that Claude had read a contract.
+**See how the AI read the agreement** opens the agreement PDF beside the terms read from it, appearing
+one at a time with the clause marked where it is printed: the lines that count, the minimum, each
+loss-ratio step (this year's marked), the cap, and the terms the rules cannot express, for the
+reviewer. It ends on the approval being tied to that exact document. The approved rules now keep those
+reviewer notes as data (`notes` in `rules.yaml`) instead of only as comments, and the API serves the
+agreement PDF.

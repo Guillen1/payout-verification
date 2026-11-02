@@ -111,6 +111,7 @@ export interface BonusView {
   ranAt: string;
   status: "awaiting_approval" | "statement_invalid" | "checked";
   hold: Hold | null;
+  reading: { rules: BonusRules; notes: string[] } | null;
   draft: { rules: BonusRules; notes: string[] } | null;
   picture: {
     bands: { upToLossRatioBps: number; rateBps: number }[];

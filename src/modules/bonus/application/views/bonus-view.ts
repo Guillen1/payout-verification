@@ -14,6 +14,8 @@ export interface BonusView {
   status: BonusResult["outcome"]["status"];
   /** Why the bonus was not checked, with any detail. */
   hold: { reason: string; details: string[] } | null;
+  /** The approved rules as read from the agreement, each with its clause, and the terms they cannot express. */
+  reading: { rules: BonusRules; notes: string[] } | null;
   /** The rules a model drafted, while they wait for approval. */
   draft: { rules: BonusRules; notes: string[] } | null;
   check: {
@@ -42,7 +44,12 @@ export interface BonusView {
   } | null;
 }
 
-export function toBonusView(result: BonusResult, names: Names, ranAt: string): BonusView {
+export function toBonusView(
+  result: BonusResult,
+  names: Names,
+  ranAt: string,
+  reading: BonusView["reading"] = null
+): BonusView {
   const { program, outcome } = result;
   const base = {
     programId: program.id,
@@ -51,6 +58,7 @@ export function toBonusView(result: BonusResult, names: Names, ranAt: string): B
     ranAt,
     status: outcome.status,
     hold: null,
+    reading,
     draft: null,
     check: null,
     picture: null,
