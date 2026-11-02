@@ -170,6 +170,9 @@ The build follows the milestones in the design doc. Each milestone is logged in
 | A malformed CSV was reported as a model outage                                                                              | Code review; reproduced on a copy of the data, then fixed and tested                   |
 | Proposed a plain-HTML admin with no framework, optimizing for less code over how it looks                                   | The human pointed out reviewers see it first; rebuilt on React, Tailwind and shadcn/ui |
 | A dispute letter built its date phrase by trimming a word and printed "invoice 2026-09-10"                                  | Read the rendered letter for the second tenant; the phrase now uses the full word      |
+| The monitoring card stayed green when a statement could not be read at all                                                  | Code review before submission; a signal now names those statements                     |
+| Switching business left the previous business's first screen on display                                                     | A click-through rehearsal of the Loom in a browser; pages now refetch and restart      |
+| The PDF view could render twice into one canvas and kept every opened PDF in memory                                         | Code review; renders are cancelled and documents released when the view closes         |
 
 ## Rules followed throughout
 

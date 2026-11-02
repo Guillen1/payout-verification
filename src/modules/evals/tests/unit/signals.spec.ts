@@ -25,6 +25,7 @@ function period(carriers: CarrierView[], pdfReadings = 0): PeriodView {
   const reading = { task: "read-pdf-statement" } as ModelUsage;
   return {
     tenantName: "Test",
+    words: DEFAULT_VOCABULARY,
     period: "2026-09",
     ranAt: "",
     totals: { paidCents: 0, toAgenciesCents: 0, toNetworkCents: 0, heldCents: 0, owedCents: 0 },
@@ -61,6 +62,20 @@ describe("signalsFor", () => {
     expect(signals["Layouts that changed"]).toEqual(["B", "alert"]);
     expect(signals["Carriers that sent nothing"]).toEqual(["C", "alert"]);
     expect(signals["Switched off by a person"]).toEqual(["D", "alert"]);
+  });
+
+  it("names a statement that could not be read, whatever the reason", () => {
+    const signals = byLabel(
+      signalsFor(
+        period([
+          carrier({ name: "A" }),
+          carrier({ name: "B", state: "held", outcome: "model_unavailable" }),
+          carrier({ name: "C", state: "held", outcome: "invalid_lines" })
+        ]),
+        DEFAULT_VOCABULARY
+      )
+    );
+    expect(signals["Commission statements that could not be read"]).toEqual(["B, C", "alert"]);
   });
 
   it("flags a statement that does not add up", () => {

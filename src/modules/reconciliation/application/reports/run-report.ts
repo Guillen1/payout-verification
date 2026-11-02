@@ -146,9 +146,9 @@ function missingSection(result: PeriodResult, words: Vocabulary): string {
   return [
     `## ${capitalized(words.payment)} not received`,
     "",
-    `${capitalized(words.items)} that took effect this period and appear on no statement line.`,
+    `${capitalized(words.items)} dated this period that appear on no statement line.`,
     "",
-    `| ${capitalized(words.counterparty)} | ${capitalized(words.item)} | ${capitalized(words.partner)} | Effective | Expected |`,
+    `| ${capitalized(words.counterparty)} | ${capitalized(words.item)} | ${capitalized(words.partner)} | ${capitalized(words.date)} | Expected |`,
     "| --- | --- | --- | --- | ---: |",
     ...rows
   ].join("\n");

@@ -422,3 +422,25 @@ technical, so the visuals have to land. Changed:
 | Tenant chosen per request; unknown tenant refused           | Unit tests pass               |
 | A statement served as it arrived; nothing outside the names | End-to-end test passes        |
 | Every screen and both findings views, both businesses       | Screenshots in `docs/images/` |
+
+### Code review and a rehearsal (2026-11-01)
+
+A review of everything since the minimal admin found ten issues, and a click-through rehearsal of the
+Loom found two more. All were fixed:
+
+- The monitoring card now names statements that could not be read at all (model unavailable,
+  unreadable values, an unreadable file); before, it stayed green exactly when the pipeline broke.
+- "Statements arrived" counts only statements that arrived, not carriers that sent nothing or were
+  switched off.
+- The PDF view cancels its render and releases the document when it closes, and marks the right line
+  when the same name is printed twice on a page (a duplicate payment).
+- A bonus result saved before the picture existed shows the page without the picture instead of
+  failing.
+- The retailer's PDF prompt says "store names", from its vocabulary; its three recordings were made
+  again (the agency network's prompt is unchanged). The report and the dispute letter use the tenant's
+  date word.
+- `pnpm demo:reconcile:brands` writes the brand group's results where the admin reads them, instead of
+  over the agency network's.
+- Listing businesses reads only each tenant's name, and the signals use the words already loaded.
+- Pages wait for the business's words instead of showing the agency network's for a moment.
+- Switching business refetches and restarts the page on screen; a carrier with nothing owed says so.

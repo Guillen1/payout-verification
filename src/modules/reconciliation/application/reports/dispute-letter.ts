@@ -72,7 +72,7 @@ export function renderCommissionDispute(
     })),
     ...unpaid.map(entry => ({
       reference: `${Item} ${entry.policy.policyNumber}`,
-      issue: `No ${words.payment} received for this ${words.item}, ${words.date} ${entry.policy.effectiveDate}.`,
+      issue: `No ${words.payment} received for this ${words.item} (${words.date}: ${entry.policy.effectiveDate}).`,
       stated: formatMoney(0),
       expected: formatMoney(entry.expectedCents ?? 0)
     }))

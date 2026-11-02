@@ -95,7 +95,8 @@ export function toBonusView(result: BonusResult, names: Names, ranAt: string): B
             description: describeFinding(finding, names)
           }))
         },
-        picture: {
+        // A result saved before the picture existed has no rules on it; the page then shows no picture.
+        picture: outcome.rules && {
           bands: outcome.rules.lossRatioBands.bands,
           bandsClause: outcome.rules.lossRatioBands.clause,
           lossRatioBps: check.expected.lossRatioBps,

@@ -19,6 +19,7 @@
     "demo:seed": "nest start -- seed",
     "demo:seed:brands": "nest start -- seed --tenant tenants/brand-group --data data/brand-group",
     "demo:reconcile": "nest start -- reconcile",
+    "demo:reconcile:brands": "nest start -- reconcile --tenant tenants/brand-group --data data/brand-group --out out/brand-group",
     "demo:bonus": "nest start -- bonus",
     "eval": "nest start -- eval",
     "admin": "pnpm --filter web build && nest start --entryFile server",

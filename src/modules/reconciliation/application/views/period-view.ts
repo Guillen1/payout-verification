@@ -4,6 +4,7 @@ import { carrierClaims } from "../../domain/carrier-claims";
 import type { Disposition } from "../../domain/line-result";
 import { formatMoney, sumCents, type Cents } from "../../domain/money";
 import type { StatementTotals } from "../../domain/reconcile-statement";
+import type { Vocabulary } from "../../domain/vocabulary";
 import type { Tenant } from "../../infrastructure/tenant-files";
 import type { CarrierOutcome, PeriodResult } from "../services/reconcile-period.service";
 
@@ -59,6 +60,8 @@ export interface CarrierView {
 
 export interface PeriodView {
   tenantName: string;
+  /** The tenant's words, for whatever describes the period. */
+  words: Vocabulary;
   period: string;
   ranAt: string;
   totals: { paidCents: Cents; toAgenciesCents: Cents; toNetworkCents: Cents; heldCents: Cents; owedCents: Cents };
@@ -79,6 +82,7 @@ export function toPeriodView(result: PeriodResult, tenant: Tenant, ranAt: string
 
   return {
     tenantName: tenant.name,
+    words: tenant.vocabulary,
     period: result.period,
     ranAt,
     totals: {

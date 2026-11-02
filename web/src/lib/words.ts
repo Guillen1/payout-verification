@@ -1,28 +1,16 @@
 import { useOverview } from "@/api/client";
 import type { Words } from "@/api/types";
 
-export type TenantWords = Pick<
-  Words,
-  "payments" | "counterparty" | "counterparties" | "statement" | "item" | "book" | "amount" | "partner" | "organization"
->;
+export type TenantWords = Words;
 
-/** Shown until the overview loads: the agency network's words, the server's defaults. */
-const AGENCY_NETWORK: TenantWords = {
-  payments: "commissions",
-  counterparty: "carrier",
-  counterparties: "carriers",
-  statement: "commission statement",
-  item: "policy",
-  book: "policy book",
-  amount: "premium",
-  partner: "agency",
-  organization: "the network"
-};
-
-/** The tenant's words, so the same screens read right for any business. */
+/**
+ * The tenant's words, so the same screens read right for any business. The layout shows pages only
+ * once the overview has loaded, so they are always the current business's words, never a default.
+ */
 export function useWords(): TenantWords {
   const { data } = useOverview();
-  return data?.words ?? AGENCY_NETWORK;
+  if (!data) throw new Error("useWords is used outside the layout, before the overview has loaded");
+  return data.words;
 }
 
 /** "Policy" from "policy". */

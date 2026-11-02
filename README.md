@@ -70,6 +70,7 @@ To work on it, run `pnpm admin:api` (the API on port 3000, restarting on change)
 ```sh
 pnpm demo:seed:brands   # a beauty brand group, three retailers' remittances (two CSV, one PDF), into data/brand-group/
 pnpm admin              # then switch to "Lumen Beauty Group" in the top bar and check the month
+pnpm demo:reconcile:brands   # or check it from the command line, into out/brand-group/
 ```
 
 A consumer brand has the same problem in a retailer's clothes. A retailer pays the brand's invoices net

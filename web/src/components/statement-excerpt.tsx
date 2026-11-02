@@ -1,4 +1,4 @@
-import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
+import { getDocument, GlobalWorkerOptions, type RenderTask } from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { useEffect, useRef, useState } from "react";
 import { useStatementCsv, useStatementPdf } from "@/api/client";
@@ -13,48 +13,67 @@ export function PdfExcerpt({
   period,
   carrierId,
   page,
-  findText
+  findText,
+  occurrence
 }: {
   period: string;
   carrierId: string;
   page: number;
   /** Text printed on the line, used to find it on the page. */
   findText: string;
+  /** Which printing of that text on the page is the line: 0 for the first, 1 for a repeat below it. */
+  occurrence: number;
 }) {
   const { data } = useStatementPdf(period, carrierId, true);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const [mark, setMark] = useState<{ top: number; height: number } | null>(null);
   const frame = useRef<HTMLDivElement>(null);
+  const [mark, setMark] = useState<{ top: number; height: number } | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (!data || !canvas.current) return;
-    let cancelled = false;
     const target = canvas.current;
-    void (async () => {
-      const document = await getDocument({ data: data.slice() }).promise;
-      const pdfPage = await document.getPage(page);
-      const viewport = pdfPage.getViewport({ scale: 2 });
-      target.width = viewport.width;
-      target.height = viewport.height;
-      await pdfPage.render({ canvas: target, viewport }).promise;
+    const loading = getDocument({ data: data.slice() });
+    let render: RenderTask | null = null;
+    let cancelled = false;
 
-      const text = await pdfPage.getTextContent();
-      const item = text.items.find(entry => "str" in entry && entry.str.trim() === findText.trim());
-      if (cancelled || !item || !("transform" in item)) return;
-      const [, baseline] = viewport.convertToViewportPoint(
-        item.transform[4] as number,
-        item.transform[5] as number
-      ) as [number, number];
-      const lineHeight = item.height * 2;
-      setMark({
-        top: (baseline - lineHeight * 1.25) / viewport.height,
-        height: (lineHeight * 1.75) / viewport.height
-      });
+    void (async () => {
+      try {
+        const document = await loading.promise;
+        const pdfPage = await document.getPage(page);
+        if (cancelled) return;
+        const viewport = pdfPage.getViewport({ scale: 2 });
+        target.width = viewport.width;
+        target.height = viewport.height;
+        render = pdfPage.render({ canvas: target, viewport });
+        await render.promise;
+
+        const text = await pdfPage.getTextContent();
+        if (cancelled) return;
+        const printed = text.items.filter(entry => "str" in entry && entry.str.trim() === findText.trim());
+        const item = printed[occurrence] ?? printed[0];
+        if (!item || !("transform" in item)) return;
+        const [, baseline] = viewport.convertToViewportPoint(
+          item.transform[4] as number,
+          item.transform[5] as number
+        ) as [number, number];
+        const lineHeight = item.height * 2;
+        setMark({
+          top: (baseline - lineHeight * 1.25) / viewport.height,
+          height: (lineHeight * 1.75) / viewport.height
+        });
+      } catch {
+        // Cancelling a render on close rejects it; only a failure while still open is worth showing.
+        if (!cancelled) setFailed(true);
+      }
     })();
+
     return () => {
       cancelled = true;
+      render?.cancel();
+      void loading.destroy();
     };
-  }, [data, page, findText]);
+  }, [data, page, findText, occurrence]);
 
   // Scroll the page inside its frame, not the dialog, so the figures above stay in view.
   useEffect(() => {
@@ -63,6 +82,7 @@ export function PdfExcerpt({
     box.scrollTo({ top: mark.top * box.scrollHeight - box.clientHeight / 2, behavior: "smooth" });
   }, [mark]);
 
+  if (failed) return <p className="text-sm text-muted-foreground">The page could not be drawn.</p>;
   return (
     <div ref={frame} className="max-h-[380px] overflow-y-auto rounded-lg border bg-white">
       {!data && <Loading />}

@@ -8,7 +8,6 @@ import { PeriodRunsService } from "../../reconciliation/application/services/per
 import { READ_PDF_STATEMENT_TASK } from "../../extraction/application/services/pdf-statement-reader.service";
 import type { CarrierView, PeriodView } from "../../reconciliation/application/views/period-view";
 import { capitalized, type Vocabulary } from "../../reconciliation/domain/vocabulary";
-import { loadTenant } from "../../reconciliation/infrastructure/tenant-files";
 import { readEvalSummary, type EvalSummary } from "../eval-summary";
 
 export interface ModelUseRow {
@@ -63,20 +62,18 @@ export class HealthService {
       })
     );
 
-    const tenant = await loadTenant(paths.tenant);
-
     return {
       evals: await readEvalSummary(paths.evals),
       latestPeriod: latest,
       modelUse: groupCalls([...(period?.modelCalls ?? []), ...bonusCalls.flat()]),
-      signals: period === null ? [] : signalsFor(period, tenant.vocabulary)
+      signals: period === null ? [] : signalsFor(period, period.words)
     };
   }
 }
 
 /**
  * What would say the pipeline stopped working or quietly regressed, read from one period's results:
- * statements that do not add up, layouts that changed, senders that went silent, carriers a person
+ * statements that do not add up or could not be read at all, layouts that changed, senders that went silent, carriers a person
  * switched off, more lines than usual needing a person, and readings the default model got wrong.
  */
 export function signalsFor(period: PeriodView, words: Vocabulary): Signal[] {
@@ -107,6 +104,14 @@ export function signalsFor(period: PeriodView, words: Vocabulary): Signal[] {
       label: `${capitalized(words.statement)}s that add up to the cent`,
       value: `${tiedOut.length} of ${read.length}`,
       status: tiedOut.length === read.length ? "ok" : "alert"
+    },
+    {
+      ...listed(
+        carriers
+          .filter(carrier => ["unreadable", "invalid_lines", "model_unavailable"].includes(carrier.outcome))
+          .map(carrier => carrier.name)
+      ),
+      label: `${capitalized(words.statement)}s that could not be read`
     },
     { ...listed(named("format_drift")), label: "Layouts that changed" },
     { ...listed(named("statement_missing")), label: `${capitalized(words.counterparties)} that sent nothing` },

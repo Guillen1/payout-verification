@@ -130,7 +130,9 @@ export class OverviewService {
       foundCents: sumCents(found.map(entry => entry.cents)),
       found,
       checked: {
-        statements: period?.carriers.length ?? 0,
+        statements: (period?.carriers ?? []).filter(
+          carrier => carrier.outcome !== "statement_missing" && carrier.outcome !== "paused"
+        ).length,
         processed: processed.length,
         readByModel: processed.filter(carrier => carrier.fileKind === "pdf").length,
         lines: total(processed.map(carrier => carrier.lines.length)),

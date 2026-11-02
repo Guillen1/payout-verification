@@ -129,6 +129,14 @@ export async function loadTenant(directory: string): Promise<Tenant> {
   };
 }
 
+/** Only the tenant's name, for listing tenants without reading and checking all their files. */
+export async function readTenantName(directory: string): Promise<string> {
+  const settings = TenantFileSchema.pick({ name: true }).parse(
+    parseYaml(await readFile(join(directory, "tenant.yaml"), "utf8"))
+  );
+  return settings.name;
+}
+
 async function loadFormat(path: string, carrierId: string): Promise<SourceFormat> {
   const format = SourceFormatSchema.parse(parseYaml(await readFile(path, "utf8")));
   if (format.carrierId !== carrierId) {

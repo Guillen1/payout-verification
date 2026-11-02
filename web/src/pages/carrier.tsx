@@ -39,8 +39,12 @@ export function CarrierPage() {
             <h1 className="text-2xl font-semibold tracking-tight">{carrier.name}</h1>
             {carrier.state === "processed" && (
               <p className="mt-1 text-muted-foreground">
-                <span className="tabular font-semibold text-critical-ink">{money(carrier.owedCents)} owed</span> ·{" "}
-                {issues(carrier, words).length} of {carrier.lines.length} lines need a person
+                {carrier.owedCents > 0 ? (
+                  <span className="tabular font-semibold text-critical-ink">{money(carrier.owedCents)} owed</span>
+                ) : (
+                  <span className="font-medium text-foreground">Nothing owed</span>
+                )}{" "}
+                · {issues(carrier, words).length} of {carrier.lines.length} lines need a person
               </p>
             )}
           </div>
@@ -122,7 +126,11 @@ function Evidence({
             label: "The agreement says",
             value: money(source.line.expectedCents)
           },
-          { label: "Difference", value: issue.amount, strong: true }
+          {
+            label: issue.tone === "warning" ? "Held until a person decides" : "Difference",
+            value: issue.amount,
+            strong: true
+          }
         ]
       : [
           { label: `${capitalized(words.counterparty)} paid`, value: money(0) },
@@ -175,6 +183,14 @@ function Evidence({
             carrierId={carrier.id}
             page={source.line.page ?? 1}
             findText={source.line.insuredName}
+            occurrence={
+              carrier.lines.filter(
+                other =>
+                  other.page === source.line.page &&
+                  other.row < source.line.row &&
+                  other.insuredName === source.line.insuredName
+              ).length
+            }
           />
         ) : (
           <CsvExcerpt period={period} carrierId={carrier.id} row={source.line.row} columns={carrier.csvColumns ?? []} />

@@ -272,10 +272,10 @@
       "task": "read-pdf-statement",
       "model": "claude-sonnet-5-5",
       "source": "live",
-      "inputTokens": 5599,
+      "inputTokens": 5598,
       "outputTokens": 2371,
-      "latencyMs": 12356,
-      "estimatedCostUsd": 0.034908
+      "latencyMs": 11490,
+      "estimatedCostUsd": 0.034906
     }
   }
 }

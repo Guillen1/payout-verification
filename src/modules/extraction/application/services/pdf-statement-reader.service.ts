@@ -133,7 +133,7 @@ function instructionsFor(format: PdfFormat, words: Vocabulary): string {
   const notes = format.readingNotes.trim();
   return `You are transcribing ${words.documentForModel} so that code can check it.
 
-Transcribe; do not interpret. Report every ${words.payment} line in the order it is printed. Copy ${words.item} numbers, insured names, product codes and transaction codes exactly as printed. Do not correct, merge or drop lines that look wrong or repeated: finding those is the next step's job, and it can only find what you report.
+Transcribe; do not interpret. Report every ${words.payment} line in the order it is printed. Copy ${words.item} numbers, ${words.customer} names, product codes and transaction codes exactly as printed. Do not correct, merge or drop lines that look wrong or repeated: finding those is the next step's job, and it can only find what you report.
 
 - Skip column headers, page subtotals and running totals. They are not ${words.payment} lines.
 - Report the statement's grand total ${words.payment} as statementTotal.

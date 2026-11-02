@@ -14,7 +14,8 @@ export function TenantSwitcher() {
   const choose = (id: string) => {
     if (id === active) return;
     chooseTenant(id);
-    queryClient.removeQueries({ predicate: query => query.queryKey[0] !== "tenants" });
+    // Reset, not just drop: pages already on screen refetch at once instead of keeping the last business's data.
+    void queryClient.resetQueries({ predicate: query => query.queryKey[0] !== "tenants" });
     void navigate("/");
   };
 
