@@ -497,3 +497,11 @@ loss-ratio step (this year's marked), the cap, and the terms the rules cannot ex
 reviewer. It ends on the approval being tied to that exact document. The approved rules now keep those
 reviewer notes as data (`notes` in `rules.yaml`) instead of only as comments, and the API serves the
 agreement PDF.
+
+### The AI's reasoning on a changed layout (2026-11-01)
+
+The approval card for a changed layout showed only the answer (old column, new column). It now also
+shows the AI's own explanation of why, and the new file's first rows with the renamed column marked,
+under the code's check that the fix reads every line and ties out. With this, each of the AI's four
+jobs is visible in the admin: reading a printed statement, reading a retailer remittance, reading a
+bonus agreement, and working out a changed layout.

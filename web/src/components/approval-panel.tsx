@@ -1,11 +1,13 @@
-import { ArrowRight, BadgeCheck, Loader2 } from "lucide-react";
+import { ArrowRight, BadgeCheck, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { useApprovals, useApprove, useRunBonus, useRunPeriod } from "@/api/client";
+import { useApprovals, useApprove, useRunBonus, useRunPeriod, useStatementCsv } from "@/api/client";
 import type { BonusRules, PendingApproval } from "@/api/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { parseCsv } from "@/lib/csv";
 import { money, rate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 const REVIEWER_KEY = "payout-verification:reviewer";
 
@@ -68,17 +70,81 @@ export function ApprovalPanel({ approvalId }: { approvalId: string }) {
   );
 }
 
+/**
+ * The AI's fix for a changed layout, with its reasoning and the evidence: the new file's first rows,
+ * the renamed columns marked. The check above says whether code proved it against every line.
+ */
 function LayoutChanges({ item }: { item: Extract<PendingApproval, { kind: "layout" }> }) {
   const columns = [...new Map(item.changes.map(change => [`${change.from}>${change.to}`, change])).values()];
+  const carrierId = item.id.split(":")[2] ?? "";
+  const { data: csv } = useStatementCsv(item.period, carrierId, carrierId !== "");
+  const [header = [], ...rows] = csv ? parseCsv(csv) : [];
+  const renamed = new Set(columns.map(change => change.to));
+
   return (
-    <div className="flex flex-col gap-2">
-      {columns.map(change => (
-        <div key={change.field} className="flex items-center gap-3 text-sm">
-          <code className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground line-through">{change.from}</code>
-          <ArrowRight className="size-4 text-muted-foreground" />
-          <code className="rounded bg-good-soft px-2 py-1 text-xs text-good-ink">{change.to}</code>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        {columns.map(change => (
+          <div key={change.field} className="flex items-center gap-3 text-sm">
+            <code className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground line-through">{change.from}</code>
+            <ArrowRight className="size-4 text-muted-foreground" />
+            <code className="rounded bg-good-soft px-2 py-1 text-xs text-good-ink">{change.to}</code>
+          </div>
+        ))}
+      </div>
+
+      {item.explanation && (
+        <div className="rounded-lg bg-muted px-4 py-3 text-sm">
+          <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <Sparkles className="size-3.5" /> Why the AI thinks so
+          </div>
+          {item.explanation}
         </div>
-      ))}
+      )}
+
+      {header.length > 0 && (
+        <div>
+          <div className="mb-1.5 text-xs text-muted-foreground">
+            The new file's first rows, with the renamed column marked
+          </div>
+          <div className="overflow-x-auto rounded-lg border">
+            <table className="w-full font-mono text-xs">
+              <thead className="bg-muted text-muted-foreground">
+                <tr>
+                  {header.map(cell => (
+                    <th
+                      key={cell}
+                      className={cn(
+                        "px-3 py-2 text-left font-normal whitespace-nowrap",
+                        renamed.has(cell) && "bg-good-soft font-medium text-good-ink"
+                      )}
+                    >
+                      {cell}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.slice(0, 3).map((cells, index) => (
+                  <tr key={index} className="border-t">
+                    {cells.map((cell, column) => (
+                      <td
+                        key={column}
+                        className={cn(
+                          "px-3 py-1.5 whitespace-nowrap",
+                          renamed.has(header[column] ?? "") && "bg-good-soft/60"
+                        )}
+                      >
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
