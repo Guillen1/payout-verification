@@ -456,3 +456,11 @@ happened before the screen loaded, so a viewer never saw the reading. Added:
 - Store names from real US cities with invented store numbers, instead of Faker's invented city
   names. The retailer PDFs changed with them, so their three readings were recorded again (still
   read field for field).
+
+### At the real business's size (2026-11-01)
+
+The first screen now ends with the checks at the size of the business the demo tenant is modeled on,
+from public figures in `tenant.yaml` (`scale`): 600 statements a year, 20+ bonus agreements, and about
+$21 a year of AI reading at this month's cost per statement, set against the one bonus program checked
+here, short by more than 1,300 times that. The human asked for the numbers in stakeholders' terms; the
+AI kept it to sizes and one real finding, and does not estimate an error rate or money found at scale.

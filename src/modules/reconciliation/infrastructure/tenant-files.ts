@@ -13,6 +13,14 @@ export interface Agency {
   state: string;
 }
 
+export interface TenantScale {
+  name: string;
+  counterparties: number;
+  bonusPrograms: number;
+  /** Where the sizes come from. */
+  source: string;
+}
+
 export interface CarrierConfig {
   id: string;
   name: string;
@@ -27,6 +35,8 @@ export interface Tenant {
   name: string;
   lineToleranceCents: number;
   vocabulary: Vocabulary;
+  /** The size of the real business a demo tenant is modeled on, if it says so. */
+  scale: TenantScale | null;
   carriers: CarrierConfig[];
   agencies: Agency[];
   rateRules: RateRule[];
@@ -38,6 +48,14 @@ const TenantFileSchema = z.object({
   name: z.string().min(1),
   lineToleranceCents: z.number().int().nonnegative(),
   vocabulary: VocabularySchema.default(VocabularySchema.parse({})),
+  scale: z
+    .object({
+      name: z.string().min(1),
+      counterparties: z.number().int().positive(),
+      bonusPrograms: z.number().int().nonnegative(),
+      source: z.string().min(1)
+    })
+    .optional(),
   carriers: z
     .array(
       z.object({
@@ -122,6 +140,7 @@ export async function loadTenant(directory: string): Promise<Tenant> {
     name: settings.name,
     lineToleranceCents: settings.lineToleranceCents,
     vocabulary: settings.vocabulary,
+    scale: settings.scale ?? null,
     carriers,
     agencies: parseCsvRecords(await read("agencies.csv"), AgencyRow, "agencies.csv"),
     rateRules: parseCsvRecords(await read("rates.csv"), RateRow, "rates.csv"),

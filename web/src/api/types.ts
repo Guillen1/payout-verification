@@ -224,4 +224,12 @@ export interface OverviewView {
   waiting: { target: Target; title: string; detail: string }[];
   accuracy: { passed: boolean; lowestScore: number; readingsTested: number; retries: number } | null;
   costPerStatementUsd: number | null;
+  scale: {
+    name: string;
+    counterparties: number;
+    bonusPrograms: number;
+    source: string;
+    statementsPerYear: number;
+    readingCostPerYearUsd: number | null;
+  } | null;
 }

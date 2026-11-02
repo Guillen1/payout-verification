@@ -48,6 +48,18 @@ export interface OverviewView {
   accuracy: { passed: boolean; lowestScore: number; readingsTested: number; retries: number } | null;
   /** What reading one PDF statement costs at list prices, from the recorded calls. */
   costPerStatementUsd: number | null;
+  /**
+   * The checks at the size of the business the demo is modeled on: how much they would cover and what
+   * a year of reading costs at this month's cost per statement. Never an estimate of money found.
+   */
+  scale: {
+    name: string;
+    counterparties: number;
+    bonusPrograms: number;
+    source: string;
+    statementsPerYear: number;
+    readingCostPerYearUsd: number | null;
+  } | null;
 }
 
 /**
@@ -123,6 +135,11 @@ export class OverviewService {
     const readings = (period?.modelCalls ?? []).filter(call => call.task === "read-pdf-statement");
     const evals = await readEvalSummary(paths.evals);
 
+    const costPerStatementUsd =
+      readings.length === 0
+        ? null
+        : readings.reduce((total, call) => total + (call.estimatedCostUsd ?? 0), 0) / readings.length;
+
     return {
       tenantName: tenant.name,
       words: tenant.vocabulary,
@@ -148,10 +165,13 @@ export class OverviewService {
         readingsTested: evals.statements,
         retries: evals.escalations
       },
-      costPerStatementUsd:
-        readings.length === 0
-          ? null
-          : readings.reduce((total, call) => total + (call.estimatedCostUsd ?? 0), 0) / readings.length
+      costPerStatementUsd,
+      scale: tenant.scale && {
+        ...tenant.scale,
+        statementsPerYear: tenant.scale.counterparties * 12,
+        readingCostPerYearUsd:
+          costPerStatementUsd === null ? null : costPerStatementUsd * tenant.scale.counterparties * 12
+      }
     };
   }
 }

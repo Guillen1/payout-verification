@@ -49,6 +49,10 @@ story in order: the problem in one sentence, what the checks did this month as i
 found, and where it is. Every finding opens next to the document it came from, so anyone can see it
 with their own eyes. A switch in the top bar moves between the two businesses the same engine runs.
 
+For a demo tenant modeled on a real business, the first screen ends with the checks at that business's
+size, from its public figures: statements a year, agreements, and what a year of AI reading costs,
+set against one real finding. It never projects money found.
+
 It runs periods and bonus checks, and approving a proposal there writes it into the tenant's config
 with the reviewer's name in `approvals.jsonl`. The page only displays; every amount comes from the API
 already computed. It listens on localhost only and has no logins, so it is for one person on their own

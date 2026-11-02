@@ -135,6 +135,8 @@ function Found({ overview }: { overview: OverviewView }) {
         ))}
       </Card>
 
+      {overview.scale && <AtScale overview={overview} scale={overview.scale} />}
+
       <p className="text-sm text-muted-foreground">{capitalized(proof.join("   ·   "))}</p>
     </>
   );
@@ -184,5 +186,46 @@ function FlowStep({ step, index, last }: { step: Step; index: number; last: bool
         </svg>
       )}
     </>
+  );
+}
+
+/**
+ * The same checks at the size of the business the demo is modeled on: what they would cover and what a
+ * year of reading costs. It compares that cost with one real finding; it never projects money found.
+ */
+function AtScale({ overview, scale }: { overview: OverviewView; scale: NonNullable<OverviewView["scale"]> }) {
+  const { words } = overview;
+  const bonus = overview.found.find(entry => entry.target.kind === "bonus");
+  const cost = scale.readingCostPerYearUsd;
+  const times = bonus && cost ? Math.floor(bonus.cents / 100 / cost / 100) * 100 : null;
+  const figures = [
+    { value: scale.statementsPerYear.toLocaleString("en-US"), label: `${words.statement}s a year, every line checked` },
+    { value: `${scale.bonusPrograms}+`, label: "bonus agreements read, every bonus recomputed" },
+    cost !== null && { value: `$${Math.ceil(cost)}`, label: "a year of AI reading, at this month's cost" }
+  ].filter(figure => figure !== false);
+
+  return (
+    <Card className="animate-rise p-6" style={{ animationDelay: "2400ms" }}>
+      <h2 className="font-medium">At {scale.name}'s size</h2>
+      <p className="text-sm text-muted-foreground">
+        {scale.counterparties}+ {words.counterparties} and {scale.bonusPrograms}+ profit-sharing programs (
+        {scale.source}).
+      </p>
+      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+        {figures.map(figure => (
+          <div key={figure.label}>
+            <div className="tabular text-3xl font-semibold">{figure.value}</div>
+            <div className="text-sm text-muted-foreground">{figure.label}</div>
+          </div>
+        ))}
+      </div>
+      {bonus && times !== null && times > 0 && (
+        <p className="mt-5 border-t pt-4 text-sm">
+          The one profit-sharing program checked here was short{" "}
+          <span className="font-semibold text-critical-ink">{money(bonus.cents)}</span>: more than{" "}
+          {times.toLocaleString("en-US")} times a year of AI reading.
+        </p>
+      )}
+    </Card>
   );
 }

@@ -4,6 +4,14 @@ id: agency-network
 name: Agency Network (synthetic)
 lineToleranceCents: 1
 
+# The size of the network this demo is modeled on, from AAI's public pages, for the admin's "at this
+# size" panel. Sizes only: nothing here estimates how often carriers pay wrong.
+scale:
+  name: AAI
+  counterparties: 50
+  bonusPrograms: 20
+  source: AAI's public site, October 2026
+
 carriers:
   - id: northwind
     name: Northwind Mutual
