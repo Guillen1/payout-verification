@@ -480,3 +480,10 @@ on screen. It now opens on the network's own record of the policy (who it is for
 sold it, product, date, premium, the agreed rate and what was due) beside the carrier's statement,
 checked line by line, with nothing for it. Every finding also names the agency that sold the policy,
 which ties the findings to the split at the bottom of the commissions page.
+
+### The bonus split, on screen (2026-11-01)
+
+The profit-sharing page now ends with who gets the bonus that was paid, like the commissions page:
+the network's 20% and each agency's share by the premium it sold, from the network's own records. An
+agency the carrier left off its statement is marked and still gets its share, and the page says the
+amount owed is split the same way when it is paid.

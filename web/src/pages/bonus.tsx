@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/page-header";
 import { ErrorState, Loading, NotRunYet, RunButton } from "@/components/states";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { money } from "@/lib/format";
+import { money, rate } from "@/lib/format";
 import { capitalized, useWords } from "@/lib/words";
 
 /** With no program in the address, open the first one. */
@@ -80,6 +80,8 @@ function Checked({ view, check }: { view: BonusView; check: NonNullable<BonusVie
         ))}
       </Card>
 
+      {view.allocation && <BonusSplit view={view} check={check} allocation={view.allocation} />}
+
       <details className="group">
         <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
           Show the calculation
@@ -95,5 +97,67 @@ function Checked({ view, check }: { view: BonusView; check: NonNullable<BonusVie
         </Card>
       </details>
     </>
+  );
+}
+
+/**
+ * Who gets the bonus that was paid: the network's share, and the rest to each agency in proportion
+ * to the premium it sold, from the network's own records. An agency the carrier left off its
+ * statement still gets its share.
+ */
+function BonusSplit({
+  view,
+  check,
+  allocation
+}: {
+  view: BonusView;
+  check: NonNullable<BonusView["check"]>;
+  allocation: NonNullable<BonusView["allocation"]>;
+}) {
+  const words = useWords();
+  const agencies = [...allocation.agencies].sort((a, b) => b.agencyCents - a.agencyCents);
+  const toAgencies = agencies.reduce((sum, agency) => sum + agency.agencyCents, 0);
+  const largest = Math.max(...agencies.map(agency => agency.agencyCents));
+  const leftOut = new Set(
+    (view.picture?.agencies ?? [])
+      .filter(agency => agency.statementCents < agency.networkCents)
+      .map(agency => agency.name)
+  );
+
+  return (
+    <section className="flex flex-col gap-3">
+      <div>
+        <h2 className="text-lg font-semibold">
+          Split between the {words.partners} and {words.organization}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Of {money(check.paidCents)} paid: {money(toAgencies)} to the {words.partners} by the premium each sold ·{" "}
+          {money(allocation.networkCents)} kept by {words.organization} ({rate(allocation.networkShareBps)}).
+          {check.varianceCents < 0 && ` The ${money(-check.varianceCents)} owed is split the same way when it is paid.`}
+        </p>
+      </div>
+      <Card className="divide-y">
+        {agencies.map(agency => (
+          <div
+            key={agency.agencyId}
+            className="grid grid-cols-[minmax(0,13rem)_1fr_auto] items-center gap-6 px-6 py-3 text-sm"
+          >
+            <div className="min-w-0">
+              <div className="truncate font-medium">{agency.name}</div>
+              <div className="text-xs text-muted-foreground">
+                {leftOut.has(agency.name)
+                  ? "left off the statement, still gets its share"
+                  : `${money(agency.eligiblePremiumCents)} premium`}
+              </div>
+            </div>
+            <div
+              className="h-2.5 rounded-full bg-[var(--series-1)]"
+              style={{ width: `${(agency.agencyCents / largest) * 100}%` }}
+            />
+            <div className="tabular text-right font-medium">{money(agency.agencyCents)}</div>
+          </div>
+        ))}
+      </Card>
+    </section>
   );
 }
