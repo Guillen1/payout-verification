@@ -444,3 +444,15 @@ Loom found two more. All were fixed:
 - Listing businesses reads only each tenant's name, and the signals use the words already loaded.
 - Pages wait for the business's words instead of showing the agency network's for a moment.
 - Switching business refetches and restarts the page on screen; a carrier with nothing owed says so.
+
+### Watching the AI read (2026-11-01)
+
+The human asked whether the admin was a "wow", and the honest answer was not yet: the AI's work
+happened before the screen loaded, so a viewer never saw the reading. Added:
+
+- **Watch the AI read it** on every printed statement: the page drawn with pdf.js and cropped to its
+  print, a scan moving down it, each line appearing beside it as the scan passes, green or flagged,
+  and at the end the tie-out to the printed total. It replays the recorded reading and says so.
+- Store names from real US cities with invented store numbers, instead of Faker's invented city
+  names. The retailer PDFs changed with them, so their three readings were recorded again (still
+  read field for field).

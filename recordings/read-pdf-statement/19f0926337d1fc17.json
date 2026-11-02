@@ -1,0 +1,281 @@
+{
+  "task": "read-pdf-statement",
+  "promptVersion": 1,
+  "result": {
+    "status": "answered",
+    "output": {
+      "statementTotal": "124581.52",
+      "lines": [
+        {
+          "page": 1,
+          "policyNumber": "LB 3813230",
+          "insuredName": "Lubbock #0825",
+          "productCode": "LASH",
+          "transactionCode": "RTN",
+          "effectiveDate": "2026-08-28",
+          "premium": "-3190.79",
+          "commission": "-3095.07"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3787901",
+          "insuredName": "Albuquerque #6829",
+          "productCode": "HAIR",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-02",
+          "premium": "11344.36",
+          "commission": "10663.70"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3642405",
+          "insuredName": "Fort Worth #7340",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-03",
+          "premium": "4443.70",
+          "commission": "4310.39"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3709057",
+          "insuredName": "Spokane #7838",
+          "productCode": "LASH",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-03",
+          "premium": "8211.13",
+          "commission": "7718.46"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3422385",
+          "insuredName": "Greenville #6724",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-04",
+          "premium": "2858.62",
+          "commission": "2772.86"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3103726",
+          "insuredName": "Waco #0648",
+          "productCode": "HAIR",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-06",
+          "premium": "8926.26",
+          "commission": "8390.68"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3420153",
+          "insuredName": "Savannah #4267",
+          "productCode": "LASH",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-06",
+          "premium": "2757.14",
+          "commission": "2591.71"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3350300",
+          "insuredName": "Kansas City #1568",
+          "productCode": "HAIR",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-07",
+          "premium": "3674.82",
+          "commission": "3564.58"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3451782",
+          "insuredName": "Birmingham #0665",
+          "productCode": "LASH",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-07",
+          "premium": "4431.79",
+          "commission": "4165.88"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3457299",
+          "insuredName": "Omaha #1600",
+          "productCode": "SKIN",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-08",
+          "premium": "3775.74",
+          "commission": "3549.20"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3481503",
+          "insuredName": "Indianapolis #3634",
+          "productCode": "SKIN",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-08",
+          "premium": "3239.51",
+          "commission": "3045.14"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3284535",
+          "insuredName": "Chattanooga #3926",
+          "productCode": "SKIN",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-10",
+          "premium": "5640.84",
+          "commission": "5471.61"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3465700",
+          "insuredName": "El Paso #1829",
+          "productCode": "HAIR",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-11",
+          "premium": "3821.18",
+          "commission": "3591.91"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3646850",
+          "insuredName": "Tucson #6626",
+          "productCode": "SKIN",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-12",
+          "premium": "4907.40",
+          "commission": "4612.96"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3666438",
+          "insuredName": "Lubbock #4033",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-12",
+          "premium": "5851.29",
+          "commission": "5675.75"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3226489",
+          "insuredName": "Indianapolis #2728",
+          "productCode": "SKIN",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-13",
+          "premium": "5005.30",
+          "commission": "4704.98"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3935019",
+          "insuredName": "Waco #0968",
+          "productCode": "LASH",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-14",
+          "premium": "5366.97",
+          "commission": "5205.96"
+        },
+        {
+          "page": 1,
+          "policyNumber": "LB 3916447",
+          "insuredName": "Phoenix #9117",
+          "productCode": "HAIR",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-18",
+          "premium": "4741.60",
+          "commission": "4599.35"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3268704",
+          "insuredName": "Birmingham #2914",
+          "productCode": "HAIR",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-19",
+          "premium": "9024.65",
+          "commission": "8483.17"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3909487",
+          "insuredName": "Mesa #7843",
+          "productCode": "LASH",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-21",
+          "premium": "7558.85",
+          "commission": "7105.32"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3187787",
+          "insuredName": "New Orleans #1096",
+          "productCode": "HAIR",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-24",
+          "premium": "6815.22",
+          "commission": "6406.31"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3743390",
+          "insuredName": "Shreveport #5474",
+          "productCode": "SKIN",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-27",
+          "premium": "6404.22",
+          "commission": "6019.97"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3571529",
+          "insuredName": "Little Rock #8506",
+          "productCode": "HAIR",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-29",
+          "premium": "8016.12",
+          "commission": "7775.64"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3648858",
+          "insuredName": "Denver #1205",
+          "productCode": "LASH",
+          "transactionCode": "NI",
+          "effectiveDate": "2026-09-29",
+          "premium": "1795.07",
+          "commission": "1687.37"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3944176",
+          "insuredName": "Denver #0662",
+          "productCode": "SKIN",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-29",
+          "premium": "1906.34",
+          "commission": "1868.21"
+        },
+        {
+          "page": 2,
+          "policyNumber": "LB 3592667",
+          "insuredName": "Charlotte #7912",
+          "productCode": "HAIR",
+          "transactionCode": "RO",
+          "effectiveDate": "2026-09-30",
+          "premium": "3809.77",
+          "commission": "3695.48"
+        }
+      ]
+    },
+    "usage": {
+      "task": "read-pdf-statement",
+      "model": "claude-sonnet-5-5",
+      "source": "live",
+      "inputTokens": 5573,
+      "outputTokens": 2345,
+      "latencyMs": 11661,
+      "estimatedCostUsd": 0.034596
+    }
+  }
+}

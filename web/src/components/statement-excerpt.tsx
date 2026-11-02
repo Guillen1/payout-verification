@@ -1,12 +1,10 @@
-import { getDocument, GlobalWorkerOptions, type RenderTask } from "pdfjs-dist";
-import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import { getDocument, type RenderTask } from "pdfjs-dist";
 import { useEffect, useRef, useState } from "react";
 import { useStatementCsv, useStatementPdf } from "@/api/client";
 import { Loading } from "@/components/states";
 import { parseCsv } from "@/lib/csv";
+import { findLine, type LineMark } from "@/lib/pdf";
 import { cn } from "@/lib/utils";
-
-GlobalWorkerOptions.workerSrc = workerUrl;
 
 /** The printed page the line came from, with the line marked where it is printed. */
 export function PdfExcerpt({
@@ -27,7 +25,7 @@ export function PdfExcerpt({
   const { data } = useStatementPdf(period, carrierId, true);
   const canvas = useRef<HTMLCanvasElement>(null);
   const frame = useRef<HTMLDivElement>(null);
-  const [mark, setMark] = useState<{ top: number; height: number } | null>(null);
+  const [mark, setMark] = useState<LineMark | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -48,20 +46,8 @@ export function PdfExcerpt({
         render = pdfPage.render({ canvas: target, viewport });
         await render.promise;
 
-        const text = await pdfPage.getTextContent();
-        if (cancelled) return;
-        const printed = text.items.filter(entry => "str" in entry && entry.str.trim() === findText.trim());
-        const item = printed[occurrence] ?? printed[0];
-        if (!item || !("transform" in item)) return;
-        const [, baseline] = viewport.convertToViewportPoint(
-          item.transform[4] as number,
-          item.transform[5] as number
-        ) as [number, number];
-        const lineHeight = item.height * 2;
-        setMark({
-          top: (baseline - lineHeight * 1.25) / viewport.height,
-          height: (lineHeight * 1.75) / viewport.height
-        });
+        const found = await findLine(pdfPage, viewport, findText, occurrence);
+        if (!cancelled && found) setMark(found);
       } catch {
         // Cancelling a render on close rejects it; only a failure while still open is worth showing.
         if (!cancelled) setFailed(true);

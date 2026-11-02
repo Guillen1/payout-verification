@@ -4,12 +4,14 @@ import { useCommissionLetter, usePeriod } from "@/api/client";
 import type { CarrierView, LineView, MissingView } from "@/api/types";
 import { ApprovalPanel } from "@/components/approval-panel";
 import { LetterDialog } from "@/components/letter-dialog";
+import { ReadingReplay } from "@/components/reading-replay";
 import { CsvExcerpt, PdfExcerpt } from "@/components/statement-excerpt";
 import { ErrorState, Loading } from "@/components/states";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { money, moneyDelta, periodName } from "@/lib/format";
+import { occurrenceOf } from "@/lib/pdf";
 import { cn } from "@/lib/utils";
 import { capitalized, useWords, type TenantWords } from "@/lib/words";
 
@@ -48,7 +50,17 @@ export function CarrierPage() {
               </p>
             )}
           </div>
-          {carrier.owedCents > 0 && <LetterDialog title={`Letter to ${carrier.name}`} useLetter={useLetter} />}
+          <div className="flex gap-2">
+            {carrier.owedCents > 0 && <LetterDialog title={`Letter to ${carrier.name}`} useLetter={useLetter} />}
+            {carrier.fileKind === "pdf" && carrier.state === "processed" && (
+              <ReadingReplay
+                period={period}
+                carrier={carrier}
+                statement={words.statement}
+                describe={line => describe(line, words)}
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -183,14 +195,7 @@ function Evidence({
             carrierId={carrier.id}
             page={source.line.page ?? 1}
             findText={source.line.insuredName}
-            occurrence={
-              carrier.lines.filter(
-                other =>
-                  other.page === source.line.page &&
-                  other.row < source.line.row &&
-                  other.insuredName === source.line.insuredName
-              ).length
-            }
+            occurrence={occurrenceOf(source.line, carrier.lines)}
           />
         ) : (
           <CsvExcerpt period={period} carrierId={carrier.id} row={source.line.row} columns={carrier.csvColumns ?? []} />

@@ -56,6 +56,13 @@ machine.
 
 ![The first screen](docs/images/admin-overview.png)
 
+**Watch the AI read it.** On a printed statement, a replay of this month's reading: the page, a scan
+moving down it, and each line appearing as it is read, green when paid as agreed and red when not,
+ending on the check that the lines add up to the printed total. It replays the recorded reading, so it
+costs nothing and is the same every time.
+
+![The AI reading a printed statement](docs/images/admin-reading.png)
+
 | A finding, on the printed statement the AI read               | Why a bonus is owed, as a picture                    |
 | ------------------------------------------------------------- | ---------------------------------------------------- |
 | ![A finding on the statement](docs/images/admin-carrier.png)  | ![The bonus picture](docs/images/admin-bonus.png)    |

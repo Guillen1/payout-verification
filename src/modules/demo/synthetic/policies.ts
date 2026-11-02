@@ -24,6 +24,64 @@ export const POLICY_PROFILE: RecordProfile = {
   name: faker => `${faker.person.firstName()} ${faker.person.lastName()}`
 };
 
+/** Real US cities for invented store numbers, so a store reads like one ("Tulsa #0418"). */
+const STORE_CITIES = [
+  "Albuquerque",
+  "Arlington",
+  "Atlanta",
+  "Austin",
+  "Baton Rouge",
+  "Birmingham",
+  "Boise",
+  "Charlotte",
+  "Chattanooga",
+  "Columbus",
+  "Dallas",
+  "Denver",
+  "Des Moines",
+  "El Paso",
+  "Fort Worth",
+  "Fresno",
+  "Greenville",
+  "Houston",
+  "Huntsville",
+  "Indianapolis",
+  "Jacksonville",
+  "Kansas City",
+  "Knoxville",
+  "Lafayette",
+  "Las Vegas",
+  "Lexington",
+  "Little Rock",
+  "Louisville",
+  "Lubbock",
+  "Memphis",
+  "Mesa",
+  "Miami",
+  "Nashville",
+  "New Orleans",
+  "Oklahoma City",
+  "Omaha",
+  "Orlando",
+  "Phoenix",
+  "Plano",
+  "Raleigh",
+  "Reno",
+  "Richmond",
+  "Sacramento",
+  "San Antonio",
+  "Savannah",
+  "Scottsdale",
+  "Shreveport",
+  "Spokane",
+  "St. Louis",
+  "Tampa",
+  "Tucson",
+  "Tulsa",
+  "Waco",
+  "Wichita"
+];
+
 /**
  * A beauty brand group's invoices to retail stores. Each brand sells one category; a "new" term is
  * a new item's first order and a "renewal" a reorder, which carry different trade terms.
@@ -35,7 +93,7 @@ export const INVOICE_PROFILE: RecordProfile = {
     { weight: 25, value: "skin" }
   ],
   amountRanges: { lash: [1_500, 9_000], hair: [2_000, 12_000], skin: [1_000, 7_000] },
-  name: faker => `${faker.location.city()} #${faker.string.numeric(4)}`,
+  name: faker => `${faker.helpers.arrayElement(STORE_CITIES)} #${faker.string.numeric(4)}`,
   partnerFor: product => `br-${product}`
 };
 
