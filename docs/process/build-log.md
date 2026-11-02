@@ -472,3 +472,11 @@ The minimal pass had removed the allocation from the admin, which left the netwo
 the split: one bar per agency showing its share and what the network keeps, with the totals to
 agencies, kept by the network, and held for a person. The amounts come from the same allocation the
 payout files are written from.
+
+### Showing what was never paid (2026-11-01)
+
+A payment that never came has no line on the statement to point at, so its finding was the weakest
+on screen. It now opens on the network's own record of the policy (who it is for, the agency that
+sold it, product, date, premium, the agreed rate and what was due) beside the carrier's statement,
+checked line by line, with nothing for it. Every finding also names the agency that sold the policy,
+which ties the findings to the split at the bottom of the commissions page.

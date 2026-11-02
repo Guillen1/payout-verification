@@ -1,4 +1,4 @@
-import { ArrowLeft, FileSearch } from "lucide-react";
+import { ArrowLeft, CircleX, FileSearch } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { useCommissionLetter, usePeriod } from "@/api/client";
 import type { CarrierView, LineView, MissingView } from "@/api/types";
@@ -10,7 +10,7 @@ import { ErrorState, Loading } from "@/components/states";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { money, moneyDelta, periodName } from "@/lib/format";
+import { money, moneyDelta, periodName, rate } from "@/lib/format";
 import { occurrenceOf } from "@/lib/pdf";
 import { cn } from "@/lib/utils";
 import { capitalized, useWords, type TenantWords } from "@/lib/words";
@@ -82,6 +82,8 @@ interface Issue {
   key: string;
   policy: string;
   insured: string;
+  /** The agency that sold the policy, from the network's own records; null when it matched none. */
+  soldBy: string | null;
   what: string;
   tone: "critical" | "warning";
   amount: string;
@@ -97,9 +99,10 @@ function Issues({ carrier, period, words }: { carrier: CarrierView; period: stri
         <Dialog key={row.key}>
           <DialogTrigger asChild>
             <button className="group flex w-full items-center gap-6 px-6 py-4 text-left transition-colors hover:bg-muted/40">
-              <div className="w-44 shrink-0">
+              <div className="w-56 shrink-0">
                 <div className="font-medium">{row.policy}</div>
                 <div className="truncate text-xs text-muted-foreground">{row.insured}</div>
+                {row.soldBy && <div className="truncate text-xs text-muted-foreground">sold by {row.soldBy}</div>}
               </div>
               <div className="flex-1">
                 <Badge tone={row.tone}>{row.what}</Badge>
@@ -159,9 +162,11 @@ function Evidence({
         {issue.policy} <Badge tone={issue.tone}>{issue.what}</Badge>
       </DialogTitle>
       <DialogDescription className="mt-1 text-sm text-muted-foreground">
+        {issue.insured}
+        {issue.soldBy && ` · sold by ${issue.soldBy}`}
         {source.kind === "line"
-          ? `${issue.insured} · ${source.line.explanation}`
-          : `${issue.insured} · dated ${source.entry.effectiveDate}, in the ${words.book}, but on no line of the ${words.statement}.`}
+          ? ` · ${source.line.explanation}`
+          : ` · in our ${words.book}, but on no line of ${carrier.name}'s ${words.statement}.`}
       </DialogDescription>
 
       <div className="mt-5 grid grid-cols-3 gap-3">
@@ -180,15 +185,13 @@ function Evidence({
       <div className="mt-6">
         <div className="mb-2 text-sm font-medium">
           {source.kind === "missing"
-            ? `${carrier.name}'s ${words.statement}: not there`
+            ? "Our record, and the statement it should be on"
             : carrier.fileKind === "pdf"
               ? `${carrier.name}'s printed ${words.statement}, page ${source.line.page ?? 1}, as the AI read it`
               : `${carrier.name}'s ${words.statement} file, row ${source.line.row}`}
         </div>
         {source.kind === "missing" ? (
-          <p className="rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
-            Every line of the {words.statement} was checked. {issue.policy} is not on any of them.
-          </p>
+          <NeverPaid entry={source.entry} carrier={carrier} words={words} />
         ) : carrier.fileKind === "pdf" ? (
           <PdfExcerpt
             period={period}
@@ -212,6 +215,7 @@ function issues(carrier: CarrierView, words: TenantWords): Issue[] {
       key: `line-${line.row}`,
       policy: line.policyNumber ?? `No ${words.item} number`,
       insured: line.insuredName,
+      soldBy: line.agency,
       what: describe(line, words),
       tone: line.disposition === "dispute" ? "critical" : "warning",
       amount:
@@ -224,6 +228,7 @@ function issues(carrier: CarrierView, words: TenantWords): Issue[] {
     key: `missing-${entry.policyNumber}`,
     policy: entry.policyNumber,
     insured: entry.insuredName,
+    soldBy: entry.agency,
     what: "Never paid",
     tone: "critical",
     amount: entry.expectedCents === null ? "Unknown" : moneyDelta(-entry.expectedCents),
@@ -251,4 +256,49 @@ function describe(line: LineView, words: TenantWords): string {
     default:
       return line.explanation;
   }
+}
+
+/**
+ * A payment that never came has no line to point at. What shows it is the network's own record of
+ * the policy beside the carrier's statement, checked line by line, with nothing for it.
+ */
+function NeverPaid({ entry, carrier, words }: { entry: MissingView; carrier: CarrierView; words: TenantWords }) {
+  const facts: [string, string][] = [
+    [capitalized(words.item), entry.policyNumber],
+    [capitalized(words.customer), entry.insuredName],
+    ["Sold by", entry.agency],
+    ["Product", `${capitalized(entry.product)}, ${entry.term}`],
+    [capitalized(words.date), entry.effectiveDate],
+    [capitalized(words.amount), money(entry.premiumCents)],
+    ...(entry.rateBps !== null ? [["Agreed rate", rate(entry.rateBps)] as [string, string]] : []),
+    ["Due", entry.expectedCents === null ? "Unknown: no rate on file" : money(entry.expectedCents)]
+  ];
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <div className="rounded-lg border bg-card p-4">
+        <div className="mb-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">Our {words.book}</div>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+          {facts.map(([label, value]) => (
+            <div key={label} className="contents">
+              <dt className="text-muted-foreground">{label}</dt>
+              <dd className={cn("tabular", label === "Due" && "font-semibold text-critical-ink")}>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      <div className="flex flex-col justify-center gap-3 rounded-lg border border-dashed p-4 text-sm">
+        <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          {carrier.name}'s {words.statement}
+        </div>
+        <div className="tabular text-2xl font-semibold">{carrier.lines.length} lines checked</div>
+        <div className="flex items-center gap-2 text-critical-ink">
+          <CircleX className="size-4 shrink-0" />
+          {entry.policyNumber} is on none of them.
+        </div>
+        <p className="text-muted-foreground">
+          The {words.counterparty}'s own {words.statement} can't show what it left out. Only our records can.
+        </p>
+      </div>
+    </div>
+  );
 }

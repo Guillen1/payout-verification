@@ -30,11 +30,16 @@ export interface LineView {
   varianceCents: Cents | null;
 }
 
+/** A policy in the network's own records that the carrier paid nothing on: the record, and what was due. */
 export interface MissingView {
   policyNumber: string;
   insuredName: string;
   agency: string;
+  product: string;
+  term: string;
   effectiveDate: string;
+  premiumCents: Cents;
+  rateBps: number | null;
   expectedCents: Cents | null;
 }
 
@@ -165,11 +170,16 @@ function toCarrierView(outcome: CarrierOutcome, agencyName: (agencyId: string) =
       expectedCents: result.expectedCents,
       varianceCents: result.varianceCents
     })),
-    missing: missing.map(({ policy, expectedCents }) => ({
+    missing: missing.map(({ policy, expectedCents, rateBps }) => ({
       policyNumber: policy.policyNumber,
       insuredName: policy.insuredName,
       agency: agencyName(policy.agencyId),
+      product: policy.product,
+      term: policy.term,
       effectiveDate: policy.effectiveDate,
+      premiumCents: policy.premiumCents,
+      // A result saved before the rate was kept has none; the page then leaves the rate out.
+      rateBps: rateBps ?? null,
       expectedCents
     }))
   };

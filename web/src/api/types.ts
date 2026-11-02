@@ -40,7 +40,11 @@ export interface MissingView {
   policyNumber: string;
   insuredName: string;
   agency: string;
+  product: string;
+  term: string;
   effectiveDate: string;
+  premiumCents: number;
+  rateBps: number | null;
   expectedCents: number | null;
 }
 

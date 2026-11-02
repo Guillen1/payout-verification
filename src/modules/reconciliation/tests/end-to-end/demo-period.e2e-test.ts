@@ -102,6 +102,16 @@ describe.each(CASES)("demo period for $tenantId with seed $seed", ({ tenantId, s
     }
   });
 
+  it("says what each policy never paid was due, from the agreed rate on its date", () => {
+    for (const outcome of result.carriers) {
+      if (outcome.status !== "processed" || outcome.reconciliation.status !== "reconciled") continue;
+      for (const { policy, rateBps, expectedCents } of outcome.reconciliation.missing) {
+        expect(rateBps).not.toBeNull();
+        expect(expectedCents).toBe(Math.round((policy.premiumCents * rateBps!) / 10_000));
+      }
+    }
+  });
+
   it("accounts for every cent each carrier paid", () => {
     for (const outcome of result.carriers) {
       if (outcome.status !== "processed" || outcome.reconciliation.status !== "reconciled") continue;

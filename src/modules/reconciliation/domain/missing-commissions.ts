@@ -1,13 +1,15 @@
 import type { Period } from "./dates";
 import { periodOf } from "./dates";
 import { findEffectiveRule } from "./effective-dated";
-import { applyRate, type Cents } from "./money";
+import { applyRate, type BasisPoints, type Cents } from "./money";
 import type { Policy, RateRule } from "./types";
 
 export interface MissingCommission {
   policy: Policy;
   /** What the carrier should have paid, or null when no rate rule applies. */
   expectedCents: Cents | null;
+  /** The agreed rate that amount comes from, or null when no rate rule applies. */
+  rateBps: BasisPoints | null;
 }
 
 /**
@@ -27,14 +29,17 @@ export function findMissingCommissions(input: {
     .filter(policy => policy.carrierId === input.carrierId)
     .filter(policy => periodOf(policy.effectiveDate) === input.period)
     .filter(policy => !input.paidPolicyNumbers.has(policy.policyNumber))
-    .map(policy => ({ policy, expectedCents: expectedFor(policy, input.rateRules) }));
+    .map(policy => {
+      const rateBps = rateFor(policy, input.rateRules);
+      return { policy, expectedCents: rateBps === null ? null : applyRate(policy.premiumCents, rateBps), rateBps };
+    });
 }
 
-function expectedFor(policy: Policy, rateRules: readonly RateRule[]): Cents | null {
+function rateFor(policy: Policy, rateRules: readonly RateRule[]): BasisPoints | null {
   const lookup = findEffectiveRule(
     rateRules,
     policy.effectiveDate,
     rule => rule.carrierId === policy.carrierId && rule.product === policy.product && rule.term === policy.term
   );
-  return lookup.status === "found" ? applyRate(policy.premiumCents, lookup.rule.rateBps) : null;
+  return lookup.status === "found" ? lookup.rule.rateBps : null;
 }
