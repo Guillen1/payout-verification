@@ -69,6 +69,7 @@ export interface CarrierView {
 }
 
 export interface PeriodView {
+  payouts: { agency: string; lines: number; paidCents: number; agencyCents: number; networkCents: number }[];
   tenantName: string;
   period: string;
   ranAt: string;

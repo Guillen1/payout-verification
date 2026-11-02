@@ -1,5 +1,6 @@
 import type { FormatProposal } from "../../../extraction/application/services/format-proposal.service";
 import type { ModelUsage } from "../../../../libs/model-client/contract/model.models";
+import { payoutsByAgency } from "../../domain/allocation";
 import { carrierClaims } from "../../domain/carrier-claims";
 import type { Disposition } from "../../domain/line-result";
 import { formatMoney, sumCents, type Cents } from "../../domain/money";
@@ -66,6 +67,8 @@ export interface PeriodView {
   ranAt: string;
   totals: { paidCents: Cents; toAgenciesCents: Cents; toNetworkCents: Cents; heldCents: Cents; owedCents: Cents };
   carriers: CarrierView[];
+  /** What each agency is paid from this period's statements, and what the network keeps. Held money is in none of them. */
+  payouts: { agency: string; lines: number; paidCents: Cents; agencyCents: Cents; networkCents: Cents }[];
   modelCalls: ModelUsage[];
 }
 
@@ -93,6 +96,21 @@ export function toPeriodView(result: PeriodResult, tenant: Tenant, ranAt: string
       owedCents: sum(carrier => carrier.owedCents)
     },
     carriers,
+    payouts: payoutsByAgency(
+      result.carriers.flatMap(outcome =>
+        outcome.status === "processed" && outcome.reconciliation.status === "reconciled"
+          ? outcome.reconciliation.allocations
+          : []
+      )
+    )
+      .map(payout => ({
+        agency: agencyName(payout.agencyId),
+        lines: payout.lineCount,
+        paidCents: payout.paidCents,
+        agencyCents: payout.agencyCents,
+        networkCents: payout.networkCents
+      }))
+      .sort((a, b) => b.paidCents - a.paidCents),
     modelCalls: result.modelCalls
   };
 }

@@ -464,3 +464,11 @@ from public figures in `tenant.yaml` (`scale`): 600 statements a year, 20+ bonus
 $21 a year of AI reading at this month's cost per statement, set against the one bonus program checked
 here, short by more than 1,300 times that. The human asked for the numbers in stakeholders' terms; the
 AI kept it to sizes and one real finding, and does not estimate an error rate or money found at scale.
+
+### The split per agency, back on screen (2026-11-01)
+
+The minimal pass had removed the allocation from the admin, which left the network's third question
+(what each agency is owed) answered only in `agency-payouts.csv`. The commissions page now ends with
+the split: one bar per agency showing its share and what the network keeps, with the totals to
+agencies, kept by the network, and held for a person. The amounts come from the same allocation the
+payout files are written from.

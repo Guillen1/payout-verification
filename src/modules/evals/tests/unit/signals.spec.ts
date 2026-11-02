@@ -30,6 +30,7 @@ function period(carriers: CarrierView[], pdfReadings = 0): PeriodView {
     ranAt: "",
     totals: { paidCents: 0, toAgenciesCents: 0, toNetworkCents: 0, heldCents: 0, owedCents: 0 },
     carriers,
+    payouts: [],
     modelCalls: Array.from({ length: pdfReadings }, () => reading)
   };
 }
